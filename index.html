@@ -31,7 +31,7 @@
     -webkit-font-smoothing:antialiased;
   }
   .wrap{
-    max-width:1020px;
+    max-width:1600px;
     margin:0 auto;
     padding:28px 20px 60px;
   }
@@ -833,6 +833,94 @@
     .memo-cell{max-width:100px;}
     .product-manage-row, .product-manage-add{grid-template-columns:1fr;}
   }
+
+
+  /* ---- UI layout: desktop right sidebar / mobile swipe panels ---- */
+  .content-layout{
+    display:grid;
+    grid-template-columns:minmax(0, 1.62fr) minmax(420px, 1fr);
+    align-items:start;
+    gap:20px;
+  }
+  .primary-column,
+  .side-column{min-width:0;}
+  .primary-column > .panel,
+  .side-panel > .panel{margin-bottom:20px;}
+  .side-slider-track{
+    display:flex;
+    flex-direction:column;
+    gap:0;
+    min-width:0;
+  }
+  .side-panel{min-width:0;}
+  .mobile-swipe-hint{display:none;}
+
+  /* Medium screens: retain a natural vertical flow before switching to mobile swipe. */
+  @media (max-width:1100px){
+    .wrap{max-width:100%; padding-left:18px; padding-right:18px;}
+    .content-layout{grid-template-columns:minmax(0, 1fr); gap:0;}
+    .side-column{margin-top:2px;}
+  }
+
+  /* Mobile: swipe horizontally between the two right-side panels. */
+  @media (max-width:760px){
+    .wrap{padding:18px 12px 36px;}
+    .content-layout{display:block;}
+    .side-column{margin-top:18px; overflow:hidden;}
+    .side-slider-track{
+      display:flex;
+      flex-direction:row;
+      gap:12px;
+      overflow-x:auto;
+      overflow-y:hidden;
+      scroll-snap-type:x mandatory;
+      scroll-behavior:smooth;
+      -webkit-overflow-scrolling:touch;
+      overscroll-behavior-x:contain;
+      scrollbar-width:none;
+      padding:0 0 8px;
+    }
+    .side-slider-track::-webkit-scrollbar{display:none;}
+    .side-panel{
+      flex:0 0 100%;
+      width:100%;
+      min-width:0;
+      scroll-snap-align:start;
+      scroll-snap-stop:always;
+    }
+    .side-panel > .panel{
+      height:100%;
+      margin:0;
+      padding:14px 12px;
+    }
+    .mobile-swipe-hint{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:8px;
+      color:var(--muted);
+      font-size:11px;
+      padding:8px 0 2px;
+    }
+    .mobile-swipe-hint span{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      min-width:22px;
+      height:22px;
+      border:1px solid var(--border);
+      border-radius:50%;
+      background:#fff;
+      font-size:13px;
+    }
+    .memo-stats-table th,
+    .memo-stats-table td{padding:7px 5px; font-size:10.5px;}
+    .memo-stats-table th{font-size:9.5px;}
+    .side-panel .log-scroll{max-width:100%; overflow:auto;}
+    .side-panel .log-scroll table{min-width:560px;}
+    .side-panel .memo-stats-table{min-width:430px;}
+  }
+
 </style>
 </head>
 <body>
@@ -873,6 +961,9 @@
       </div>
     </div>
   </div>
+
+  <div class="content-layout">
+    <main class="primary-column" aria-label="주요 관리 영역">
 
   <div class="panel">
     <div class="log-header">
@@ -981,6 +1072,11 @@
     <div class="hint" id="formHint"></div>
   </div>
 
+    </main>
+
+    <aside class="side-column" aria-label="폐용매 통계 및 입고 내역">
+      <div class="side-slider-track">
+        <section class="side-panel" aria-label="폐용매 통계">
   <div class="panel">
     <div class="panel-title">폐용매 통계</div>
     <div class="log-scroll" style="max-height:none;">
@@ -999,7 +1095,9 @@
       </table>
     </div>
   </div>
+        </section>
 
+        <section class="side-panel" aria-label="입고 내역">
   <div class="panel">
     <div class="log-header">
       <div class="panel-title" style="margin-bottom:0;">입고 내역</div>
@@ -1025,6 +1123,13 @@
         </tbody>
       </table>
     </div>
+  </div>
+        </section>
+      </div>
+      <div class="mobile-swipe-hint" aria-hidden="true">
+        <span>←</span> 좌우로 밀어 폐용매 통계와 입고 내역 보기 <span>→</span>
+      </div>
+    </aside>
   </div>
 
 </div>
