@@ -833,6 +833,152 @@
     .memo-cell{max-width:100px;}
     .product-manage-row, .product-manage-add{grid-template-columns:1fr;}
   }
+
+
+  /* ---- Responsive dashboard layout ---- */
+  .wrap{
+    width:min(100%, 1480px);
+    max-width:1480px;
+    padding:24px 24px 48px;
+  }
+  .dashboard-grid{
+    display:grid;
+    grid-template-columns:minmax(0, 1.18fr) minmax(420px, .92fr);
+    align-items:start;
+    gap:20px;
+  }
+  .main-column,
+  .side-column{min-width:0;}
+  .main-column{display:grid; gap:18px; align-content:start;}
+  .main-column > .panel,
+  .side-slide.panel{margin-bottom:0;}
+  .side-column{min-width:0;}
+
+  .side-column-toolbar{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:12px;
+  }
+  .side-column-toolbar-title{
+    font-family:'Oswald',sans-serif;
+    font-size:15px;
+    font-weight:600;
+    letter-spacing:.04em;
+    color:var(--ink);
+  }
+  .side-column-actions{display:flex; align-items:center; gap:8px; flex-wrap:wrap;}
+  .side-slider{display:flex; flex-direction:column; gap:18px; min-width:0;}
+  .side-slider-controls,
+  .side-slider-hint{display:none;}
+  .side-slide{min-width:0;}
+  .memo-stats-table{min-width:450px;}
+  .log-scroll{overflow:auto; overscroll-behavior-x:contain;}
+  .log-scroll table{min-width:560px;}
+  .panel{padding:17px;}
+  .log-header{align-items:center;}
+  .log-header > div:last-child{flex-wrap:wrap;}
+  .side-slide .log-scroll{max-height:calc(100vh - 250px);}
+  #entryLogPanel .log-scroll{min-height:220px;}
+  .side-slider-tab:focus-visible,
+  .side-slider button:focus-visible{outline:3px solid rgba(217,72,15,.3); outline-offset:2px;}
+
+  @media (max-width: 1100px){
+    .dashboard-grid{grid-template-columns:minmax(0, 1fr) minmax(360px, .9fr); gap:14px;}
+    .wrap{padding-left:18px; padding-right:18px;}
+    .panel{padding:14px;}
+  }
+  @media (max-width: 900px){
+    .dashboard-grid{grid-template-columns:minmax(0, 1fr);}
+    .side-column{margin-top:2px;}
+    .side-slider-controls{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:6px;
+      padding:4px;
+      background:#E3E8E3;
+      border:1px solid var(--border);
+      border-radius:9px;
+      margin-bottom:7px;
+    }
+    .side-slider-tab{
+      min-height:42px;
+      border:1px solid transparent;
+      border-radius:6px;
+      background:transparent;
+      color:var(--muted);
+      font-family:'Inter',sans-serif;
+      font-size:13px;
+      font-weight:700;
+      cursor:pointer;
+    }
+    .side-slider-tab.active{
+      background:#fff;
+      border-color:var(--border);
+      color:var(--ink);
+      box-shadow:0 1px 3px rgba(31,42,36,.08);
+    }
+    .side-slider-hint{
+      display:block;
+      margin:0 2px 9px;
+      color:var(--muted);
+      font-size:11px;
+      text-align:center;
+    }
+    .side-slider{
+      display:flex;
+      flex-direction:row;
+      gap:0;
+      width:100%;
+      overflow-x:auto;
+      overflow-y:hidden;
+      scroll-snap-type:x mandatory;
+      scroll-behavior:smooth;
+      -webkit-overflow-scrolling:touch;
+      overscroll-behavior-x:contain;
+      scrollbar-width:none;
+      border-radius:8px;
+    }
+    .side-slider::-webkit-scrollbar{display:none;}
+    .side-slide.panel{
+      flex:0 0 100%;
+      width:100%;
+      max-width:100%;
+      min-width:100%;
+      scroll-snap-align:start;
+      scroll-snap-stop:always;
+      margin:0;
+    }
+    .side-slide .log-scroll{max-height:460px; min-height:220px;}
+    .memo-stats-table{min-width:440px;}
+  }
+  @media (max-width: 640px){
+    .wrap{padding:16px 12px 32px;}
+    header{margin-bottom:16px;}
+    h1{font-size:27px;}
+    .stats{gap:8px; margin-bottom:16px;}
+    .stat-card{padding:11px 9px;}
+    .stat-card .num{font-size:23px;}
+    .stat-card .label{font-size:9.5px;}
+    .panel{padding:13px; margin-bottom:14px;}
+    .main-column{gap:14px;}
+    .main-column > .panel{margin-bottom:0;}
+    .form-grid{gap:12px;}
+    .log-header{align-items:flex-start;}
+    .log-header > div:last-child{gap:6px !important;}
+    .save-btn,.clear-btn{padding:7px 10px; font-size:11px;}
+
+    .side-column-toolbar{margin-bottom:9px;}
+    .side-column-toolbar-title{font-size:14px;}
+    .side-column-actions{gap:6px;}
+    .side-slider-tab{font-size:12px;}
+    .side-slide .log-scroll{max-height:420px;}
+    .memo-stats-table{min-width:430px;}
+    .log-scroll table{min-width:550px;}
+  }
+
 </style>
 </head>
 <body>
@@ -874,7 +1020,9 @@
     </div>
   </div>
 
-  <div class="panel">
+  <div class="dashboard-grid">
+    <main class="main-column" aria-label="생산일정 및 입고 등록">
+  <section class="panel" id="calendarPanel">
     <div class="log-header">
       <div class="panel-title" style="margin-bottom:0;">생산일정 연동 — 월별 예상 폐용매 캘린더</div>
       <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -912,9 +1060,9 @@
     <div id="calendarAlertsBody" style="margin-top:14px;">
       <div class="alert-empty">캘린더 연동 설정을 확인하는 중…</div>
     </div>
-  </div>
+  </section>
 
-  <div class="panel">
+  <section class="panel" id="entryFormPanel">
     <div class="panel-title" id="formPanelTitle">입고 등록</div>
     <div class="edit-mode-note" id="editModeNote">✎ 이 항목을 수정하는 중입니다. 내용을 고친 뒤 "수정 완료"를 누르세요.</div>
 
@@ -979,9 +1127,25 @@
     <button class="submit-btn" id="submitBtn" onclick="submitEntry()">입고 등록</button>
     <button class="cancel-edit-btn" id="cancelEditBtn" style="display:none;" onclick="cancelEdit()">수정 취소</button>
     <div class="hint" id="formHint"></div>
-  </div>
+  </section>
 
-  <div class="panel">
+    </main>
+
+    <aside class="side-column" aria-label="폐용매 통계 및 입고 내역">
+      <div class="side-column-toolbar">
+        <div class="side-column-toolbar-title">입고 데이터 관리</div>
+        <div class="side-column-actions">
+          <button class="save-btn" id="saveBtn" onclick="handleSaveClick()">💾 저장</button>
+          <button class="clear-btn" id="clearBtn" onclick="handleClearClick()">전체삭제</button>
+        </div>
+      </div>
+      <div class="side-slider-controls" aria-label="우측 패널 선택">
+        <button type="button" class="side-slider-tab active" id="sideTabStats" role="tab" aria-selected="true" aria-controls="wasteStatsPanel" onclick="goToSideSlide(0)">폐용매 통계</button>
+        <button type="button" class="side-slider-tab" id="sideTabLog" role="tab" aria-selected="false" aria-controls="entryLogPanel" onclick="goToSideSlide(1)">입고 내역</button>
+      </div>
+      <div class="side-slider-hint" id="sideSliderHint">좌우로 밀어 폐용매 통계와 입고 내역을 확인하세요</div>
+      <div class="side-slider" id="sideSlider">
+      <section class="panel side-slide" id="wasteStatsPanel" role="tabpanel" aria-labelledby="sideTabStats">
     <div class="panel-title">폐용매 통계</div>
     <div class="log-scroll" style="max-height:none;">
       <table class="memo-stats-table" id="memoStatsTable">
@@ -998,15 +1162,11 @@
         <tbody id="memoStatsBody"></tbody>
       </table>
     </div>
-  </div>
+      </section>
 
-  <div class="panel">
+      <section class="panel side-slide" id="entryLogPanel" role="tabpanel" aria-labelledby="sideTabLog">
     <div class="log-header">
       <div class="panel-title" style="margin-bottom:0;">입고 내역</div>
-      <div style="display:flex; gap:8px;">
-        <button class="save-btn" id="saveBtn" onclick="handleSaveClick()">💾 저장</button>
-        <button class="clear-btn" id="clearBtn" onclick="handleClearClick()">전체삭제</button>
-      </div>
     </div>
     <div class="log-scroll">
       <table>
@@ -1025,6 +1185,9 @@
         </tbody>
       </table>
     </div>
+      </section>
+      </div>
+    </aside>
   </div>
 
 </div>
@@ -1034,6 +1197,8 @@ const STORAGE_KEY = 'tonbag_entries'; // Firebase 연결 실패시에만 쓰는 
 const PRESETS_STORAGE_KEY = 'tonbag_waste_presets'; // 폐용매 목록의 로컬 백업 키 (Firebase 실패시에만 사용)
 const PRODUCT_MAP_STORAGE_KEY = 'tonbag_product_waste_map'; // 품목→폐용매 매핑의 로컬 백업 키 (Firebase 실패시에만 사용)
 const CALENDAR_CONFIG_STORAGE_KEY = 'tonbag_calendar_config'; // 캘린더 연동 설정(ID/API키)의 로컬 백업 키 (Firebase 실패시에만 사용)
+const DEFAULT_CALENDAR_API_KEY = 'AIzaSyAhOWorzMqknLc0ktTKGKm7uXj3En3bM3k';
+const CALENDAR_API_KEY_VERSION = 2; // 기존 저장된 캘린더 키를 새 키로 한 번 교체
 const DISMISSED_MISSING_STORAGE_KEY = 'tonbag_dismissed_missing'; // "폐액 미기입" 체크(확인 완료 처리)한 항목의 로컬 백업 키 (Firebase 실패시에만 사용)
 const TYPE_LABELS = { full: 'Full', half: '사용', empty: '빈백' };
 const TYPE_RATIO = { full: 1, half: 0.5, empty: 0 };
@@ -1082,7 +1247,7 @@ function cloneProductWasteMap(map){
 let entries = [];
 let wastePresets = DEFAULT_WASTE_PRESETS.slice();
 let productWasteMap = cloneProductWasteMap(DEFAULT_PRODUCT_WASTE_MAP);
-let calendarConfig = { calendarId: '', apiKey: '' };
+let calendarConfig = { calendarId: '', apiKey: DEFAULT_CALENDAR_API_KEY, apiKeyVersion: CALENDAR_API_KEY_VERSION };
 let calendarEvents = []; // 마지막으로 불러온 구글 캘린더 이벤트 목록 (오늘~내일 범위)
 let calendarFetchState = 'idle'; // idle(설정 전) | loading | ok | error
 let calendarFetchError = '';
@@ -1172,8 +1337,7 @@ function updateSyncBadge(){
 }
 
 function todayStr(){
-  const d = new Date();
-  return d.toISOString().slice(0,10);
+  return ymd(new Date());
 }
 
 function escapeHtml(str){
@@ -1230,8 +1394,14 @@ function sanitizeProductWasteMap(obj){
 
 function sanitizeCalendarConfig(obj){
   const calendarId = obj && typeof obj.calendarId === 'string' ? obj.calendarId.trim() : '';
-  const apiKey = obj && typeof obj.apiKey === 'string' ? obj.apiKey.trim() : '';
-  return { calendarId, apiKey };
+  const storedVersion = Number(obj && obj.apiKeyVersion) || 0;
+  const storedApiKey = obj && typeof obj.apiKey === 'string' ? obj.apiKey.trim() : '';
+  // 버전이 없는 예전 설정은 새 API 키로 교체한다. 이후 사용자가 설정 화면에서
+  // 키를 직접 변경하면 현재 버전으로 저장되어 재접속 때 덮어쓰지 않는다.
+  const apiKey = storedVersion < CALENDAR_API_KEY_VERSION
+    ? DEFAULT_CALENDAR_API_KEY
+    : (storedApiKey || DEFAULT_CALENDAR_API_KEY);
+  return { calendarId, apiKey, apiKeyVersion: CALENDAR_API_KEY_VERSION };
 }
 
 // "폐액 미기입" 체크(확인 완료 처리) 목록을 저장소에서 불러올 때, 배열이 아니거나
@@ -1254,10 +1424,12 @@ async function loadEntries(){
     const rawProductMapObj = rawProductMap ? JSON.parse(rawProductMap) : null;
     productWasteMap = rawProductMapObj ? sanitizeProductWasteMap(rawProductMapObj) : cloneProductWasteMap(DEFAULT_PRODUCT_WASTE_MAP);
     const rawCalConfig = localStorage.getItem(CALENDAR_CONFIG_STORAGE_KEY);
-    calendarConfig = rawCalConfig ? sanitizeCalendarConfig(JSON.parse(rawCalConfig)) : { calendarId: '', apiKey: '' };
+    const parsedCalConfig = rawCalConfig ? JSON.parse(rawCalConfig) : null;
+    const calendarConfigNeedsMigration = !!rawCalConfig && (Number(parsedCalConfig && parsedCalConfig.apiKeyVersion) || 0) < CALENDAR_API_KEY_VERSION;
+    calendarConfig = sanitizeCalendarConfig(parsedCalConfig);
     const rawDismissed = localStorage.getItem(DISMISSED_MISSING_STORAGE_KEY);
     dismissedMissingKeys = sanitizeDismissedMissing(rawDismissed ? JSON.parse(rawDismissed) : null);
-    if(hasLegacyPresetNames(rawPresetsList) || hasLegacyEntryMemos(rawEntriesList)){
+    if(hasLegacyPresetNames(rawPresetsList) || hasLegacyEntryMemos(rawEntriesList) || calendarConfigNeedsMigration){
       // 예전 폐용매 이름("EtOH+EA" 등)이 저장되어 있던 경우, 새 이름으로 교정한 내용을
       // 사용자 조작 없이 조용히 다시 저장해서 다음에도 새 이름으로 남도록 한다.
       saveEntries();
@@ -1266,7 +1438,7 @@ async function loadEntries(){
     entries = [];
     wastePresets = DEFAULT_WASTE_PRESETS.slice();
     productWasteMap = cloneProductWasteMap(DEFAULT_PRODUCT_WASTE_MAP);
-    calendarConfig = { calendarId: '', apiKey: '' };
+    calendarConfig = { calendarId: '', apiKey: DEFAULT_CALENDAR_API_KEY, apiKeyVersion: CALENDAR_API_KEY_VERSION };
     dismissedMissingKeys = new Set();
   }
   render();
@@ -1288,14 +1460,15 @@ function subscribeEntries(){
       const presetsFromDb = data && data.wastePresets;
       const productMapFromDb = data && data.productWasteMap;
       const calendarConfigFromDb = data && data.calendarConfig;
+      const calendarConfigNeedsMigration = !!calendarConfigFromDb && (Number(calendarConfigFromDb.apiKeyVersion) || 0) < CALENDAR_API_KEY_VERSION;
       const dismissedFromDb = data && data.dismissedMissingKeys;
       entries = sanitizeEntries(rawEntriesList);
       wastePresets = Array.isArray(presetsFromDb) ? sanitizeWastePresets(presetsFromDb) : DEFAULT_WASTE_PRESETS.slice();
       productWasteMap = productMapFromDb ? sanitizeProductWasteMap(productMapFromDb) : cloneProductWasteMap(DEFAULT_PRODUCT_WASTE_MAP);
-      calendarConfig = calendarConfigFromDb ? sanitizeCalendarConfig(calendarConfigFromDb) : { calendarId: '', apiKey: '' };
+      calendarConfig = sanitizeCalendarConfig(calendarConfigFromDb);
       dismissedMissingKeys = sanitizeDismissedMissing(dismissedFromDb);
       render();
-      if(hasLegacyPresetNames(presetsFromDb) || hasLegacyEntryMemos(rawEntriesList)){
+      if(hasLegacyPresetNames(presetsFromDb) || hasLegacyEntryMemos(rawEntriesList) || calendarConfigNeedsMigration){
         // 공유 저장소에 예전 폐용매 이름("EtOH+EA" 등)이 남아있던 경우, 새 이름으로
         // 교정한 내용을 조용히 다시 저장해서 모두의 화면에 새 이름이 반영되게 한다.
         saveEntries();
@@ -1837,6 +2010,7 @@ function toggleCalendarSettings(){
 function handleCalendarConfigInput(){
   calendarConfig.calendarId = document.getElementById('calCalendarId').value.trim();
   calendarConfig.apiKey = document.getElementById('calApiKey').value.trim();
+  calendarConfig.apiKeyVersion = CALENDAR_API_KEY_VERSION;
   markDirty();
 }
 
@@ -2115,7 +2289,7 @@ function startEditEntry(id){
   document.getElementById('submitBtn').textContent = '수정 완료';
   document.getElementById('cancelEditBtn').style.display = 'block';
   document.getElementById('formHint').textContent = '';
-  document.querySelector('.panel').scrollIntoView({ behavior:'smooth', block:'start' });
+  document.getElementById('entryFormPanel').scrollIntoView({ behavior:'smooth', block:'start' });
 }
 
 function exitEditMode(){
@@ -2465,7 +2639,7 @@ function renderMemoStats(){
   tbody.innerHTML = keys.map(key=>{
     const g = groups[key];
     return `<tr>
-      <td class="memo-name">${key}</td>
+      <td class="memo-name">${escapeHtml(key)}</td>
       <td class="num-cell">${g.count}건</td>
       <td class="num-cell">${g.full}</td>
       <td class="num-cell">${g.half}</td>
@@ -2473,6 +2647,30 @@ function renderMemoStats(){
       <td class="num-cell"><strong>${g.total}개</strong></td>
     </tr>`;
   }).join('');
+}
+
+
+function goToSideSlide(index){
+  const slider = document.getElementById('sideSlider');
+  if(!slider) return;
+  const slides = slider.querySelectorAll('.side-slide');
+  const safeIndex = Math.max(0, Math.min(index, slides.length - 1));
+  slider.scrollTo({ left: safeIndex * slider.clientWidth, behavior: 'smooth' });
+  updateSideSliderNavigation();
+}
+
+function updateSideSliderNavigation(){
+  const slider = document.getElementById('sideSlider');
+  if(!slider) return;
+  const slides = slider.querySelectorAll('.side-slide');
+  const index = Math.max(0, Math.min(Math.round(slider.scrollLeft / Math.max(1, slider.clientWidth)), slides.length - 1));
+  const tabs = [document.getElementById('sideTabStats'), document.getElementById('sideTabLog')];
+  tabs.forEach((tab, i)=>{
+    if(!tab) return;
+    const active = i === index;
+    tab.classList.toggle('active', active);
+    tab.setAttribute('aria-selected', active ? 'true' : 'false');
+  });
 }
 
 function render(){
@@ -2487,6 +2685,12 @@ function render(){
 }
 
 document.getElementById('fDate').value = todayStr();
+const sideSlider = document.getElementById('sideSlider');
+if(sideSlider){
+  sideSlider.addEventListener('scroll', updateSideSliderNavigation, { passive:true });
+  window.addEventListener('resize', updateSideSliderNavigation);
+  updateSideSliderNavigation();
+}
 (async function bootstrap(){
   useFirebase = await initFirebaseBackend();
   updateSyncBadge();
