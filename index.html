@@ -9,386 +9,835 @@
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore-compat.js"></script>
 <style>
-:root{
-  --bg:#EEF1EF;--surface:#fff;--ink:#1F2A24;--muted:#5C6B63;
-  --accent-in:#D9480F;--full:#D9480F;--half:#E8A33D;--empty:#7E8A96;
-  --border:#D7DBD4;--danger:#B3261E;--ok:#2F7D4F;
-}
-*{box-sizing:border-box}
-html{overflow-x:hidden}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
-button,input,select{font:inherit}
-button{cursor:pointer}
-.wrap{width:100%;max-width:1560px;margin:0 auto;padding:22px 24px 48px}
-header{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:8px;margin-bottom:18px;border-bottom:3px solid var(--ink);padding-bottom:14px}
-.eyebrow{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:.12em;color:var(--muted);text-transform:uppercase}
-h1{font-family:'Oswald',sans-serif;font-weight:700;font-size:30px;letter-spacing:.01em;margin:2px 0 0}
-.subtitle{font-size:13px;color:var(--muted)}
-.sync-badge{display:inline-block;margin-top:8px;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;border:1px solid var(--border);color:var(--muted);font-family:'JetBrains Mono',monospace;background:#fff}
-.sync-badge.connected{border-color:var(--ok);color:var(--ok);background:rgba(47,125,79,.08)}
-.sync-badge.local{border-color:var(--danger);color:var(--danger);background:rgba(179,38,30,.06)}
-.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:13px 12px;display:flex;align-items:center;gap:10px}
-.stat-card .num{font-family:'Oswald',sans-serif;font-size:26px;font-weight:600;line-height:1}
-.stat-card .label{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin-top:3px}
-.stat-card.total .num{color:var(--ink)}.stat-card.full .num{color:var(--full)}.stat-card.half .num{color:var(--half)}.stat-card.empty .num{color:var(--empty)}
-/* PC는 좌측(캘린더/등록), 우측(통계/내역) */
-.dashboard-grid{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(455px,1fr);gap:18px;align-items:start}
-.dashboard-left,.dashboard-right{min-width:0}
-.dashboard-left>.panel,.dashboard-right>.panel{margin-bottom:18px}
-.panel{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:18px;min-width:0}
-.panel-title{font-family:'Oswald',sans-serif;font-size:15px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;margin-bottom:14px}
-.log-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px}
-.form-grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.6fr) minmax(0,1fr);gap:14px;align-items:end}
-.field label{display:block;font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;margin-bottom:6px}
-.field-label-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
-.field-label-row label{margin-bottom:0}
-.manage-toggle-btn{background:none;border:none;color:var(--accent-in);font-size:11.5px;font-weight:700;cursor:pointer;padding:2px 4px;font-family:'Inter',sans-serif}
-.manage-toggle-btn:hover{text-decoration:underline}
-input[type="date"],input[type="text"],select.select-input{width:100%;padding:9px 10px;border:1.5px solid var(--border);border-radius:6px;font-family:'Inter',sans-serif;font-size:13px;color:var(--ink);background:#fff;min-width:0}
-input:focus,select:focus{outline:none;border-color:var(--ink)}
-.full-row{grid-column:1/-1}
-.type-toggle{display:flex;gap:6px}
-.type-toggle button{flex:1;min-width:0;padding:10px 4px;border-radius:6px;border:1.5px solid var(--border);background:#fff;font-weight:600;font-size:12px;display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap}
-.type-toggle button.active[data-type="full"]{background:rgba(217,72,15,.1);border-color:var(--full);color:var(--full)}
-.type-toggle button.active[data-type="half"]{background:rgba(232,163,61,.15);border-color:var(--half);color:#8a5c0f}
-.type-toggle button.active[data-type="empty"]{background:rgba(126,138,150,.15);border-color:var(--empty);color:#4b545c}
-.qty-stepper{display:flex;align-items:center;border:1.5px solid var(--border);border-radius:6px;overflow:hidden;min-width:0}
-.qty-stepper button{width:36px;height:39px;border:0;background:var(--bg);font-size:18px;font-weight:600;color:var(--ink);flex:none}
-.qty-stepper input{flex:1;border:0;text-align:center;font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:600;padding:8px 4px;width:100%;min-width:0}
-.qty-stepper input:focus{outline:none}
-.capacity-field{max-width:220px;margin-top:14px}
-.submit-btn{margin-top:15px;width:100%;padding:12px 0;border:0;border-radius:6px;font-family:'Oswald',sans-serif;font-weight:600;font-size:15px;letter-spacing:.03em;color:#fff;cursor:pointer;background:var(--accent-in)}
-.submit-btn:hover{opacity:.9}
-.hint{font-size:12px;color:var(--danger);margin-top:8px;min-height:16px}
-.waste-manage,.calendar-settings{margin-top:10px;padding:12px;background:var(--bg);border:1px solid var(--border);border-radius:6px}
-.waste-manage-list{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
-.waste-manage-empty{font-size:12px;color:var(--muted);margin-bottom:10px}
-.waste-chip{display:flex;align-items:center;gap:2px;background:#fff;border:1.5px solid var(--border);border-radius:20px;padding:2px 4px 2px 10px}
-.waste-chip input{border:0;background:transparent;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:600;color:var(--ink);width:auto;min-width:44px;max-width:150px;padding:4px 0}
-.waste-chip input:focus{outline:none}
-.waste-chip-del{background:none;border:0;color:var(--muted);cursor:pointer;font-size:13px;padding:3px 7px;border-radius:50%;line-height:1}
-.waste-chip-del:hover{color:var(--danger);background:rgba(179,38,30,.08)}
-.waste-manage-add{display:flex;gap:8px}
-.waste-manage-add input{flex:1;min-width:0;padding:8px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;background:#fff}
-.waste-manage-add button{padding:8px 14px;border:0;border-radius:6px;background:var(--ink);color:#fff;font-weight:600;font-size:12px;white-space:nowrap}
-.waste-manage-hint,.calendar-help{font-size:11px;color:var(--muted);margin-top:8px;line-height:1.6}
-.memo-stats-table{width:100%;border-collapse:collapse;font-size:12px;table-layout:auto}
-.memo-stats-table th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding:8px 7px;background:var(--bg);border-bottom:1px solid var(--border);white-space:nowrap}
-.memo-stats-table td{padding:8px 7px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:11.5px}
-.memo-stats-table tr:last-child td{border-bottom:none}
-.memo-stats-table td.memo-name{font-family:'Inter',sans-serif;font-weight:600}
-.memo-stats-table td.num-cell{text-align:right;white-space:nowrap}
-.save-btn,.clear-btn{padding:7px 13px;border-radius:20px;background:#fff;font-size:11.5px;font-weight:600;cursor:pointer;white-space:nowrap}
-.save-btn{border:1.5px solid var(--ok);color:var(--ok)}.save-btn.dirty{border-color:var(--half);background:rgba(232,163,61,.15);color:#8a5c0f}.save-btn.done{background:var(--ok);color:#fff}
-.clear-btn{border:1.5px solid var(--danger);color:var(--danger)}
-/* 입고내역: 내부 스크롤 없이 전체 목록 표시 */
-.inventory-log-panel .log-scroll{max-height:none!important;height:auto!important;overflow:visible!important;border-radius:8px}
-table{width:100%;border-collapse:collapse;background:var(--surface);border:1px solid var(--border);font-size:12px}
-thead th{text-align:left;font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);padding:9px 7px;background:var(--bg);border-bottom:1px solid var(--border)}
-tbody td{padding:8px 7px;border-bottom:1px solid var(--border);font-family:'JetBrains Mono',monospace;font-size:11.5px;vertical-align:middle}
-tbody tr:last-child td{border-bottom:none}tbody tr:hover{background:#FAFAF8}
-.inventory-log-panel table{width:100%;table-layout:fixed}
-.inventory-log-panel th:nth-child(1),.inventory-log-panel td:nth-child(1){width:42px}
-.inventory-log-panel th:nth-child(2),.inventory-log-panel td:nth-child(2){width:72px}
-.inventory-log-panel th:nth-child(3),.inventory-log-panel td:nth-child(3){width:78px}
-.inventory-log-panel th:nth-child(4),.inventory-log-panel td:nth-child(4){width:66px}
-.inventory-log-panel th:nth-child(5),.inventory-log-panel td:nth-child(5){width:48px}
-.inventory-log-panel th:nth-child(7),.inventory-log-panel td:nth-child(7){width:55px}
-.inventory-log-panel th,.inventory-log-panel td{padding:8px 5px;overflow-wrap:anywhere}
-.no{color:var(--muted)}
-.status-select,.cap-select,.memo-select{width:100%;max-width:100%;min-width:0;padding:5px 3px;border-radius:6px;font-size:10.5px;font-weight:700;cursor:pointer;background:#fff}
-.status-select{font-family:'Inter',sans-serif;border:1.5px solid var(--border);color:var(--ink)}
-.status-select.type-full{border-color:var(--full);color:var(--full)}.status-select.type-half{border-color:var(--half);color:#8a5c0f}
-.cap-select{font-family:'JetBrains Mono',monospace;border:1.5px solid var(--half);background:rgba(232,163,61,.1);color:#8a5c0f}
-.memo-select{font-family:'JetBrains Mono',monospace;border:1.5px solid var(--border);color:var(--ink)}
-.cap-dash{color:var(--muted)}.edit-btn,.del-btn{background:none;border:0;color:var(--muted);cursor:pointer;font-size:15px;padding:2px 3px;border-radius:4px}
-.edit-btn:hover{color:var(--accent-in);background:rgba(217,72,15,.08)}.del-btn:hover{color:var(--danger);background:rgba(179,38,30,.08)}
-tr.editing-row{background:rgba(217,72,15,.06)}
-.cancel-edit-btn{margin-top:8px;width:100%;padding:10px 0;border:1.5px solid var(--border);border-radius:6px;font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;color:var(--muted);background:#fff;cursor:pointer}
-.edit-mode-note{font-size:12px;color:var(--accent-in);font-weight:600;margin-bottom:10px;display:none}.edit-mode-note.show{display:block}
-.empty-row td{text-align:center;color:var(--muted);font-family:'Inter',sans-serif;padding:26px 10px}
-/* 생산 캘린더 */
-.cal-month-header{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:12px;flex-wrap:wrap}
-.cal-month-title{font-family:'Oswald',sans-serif;font-size:16px;font-weight:700;min-width:110px;text-align:center}
-.cal-month-nav-btn,.cal-month-today-btn,.refresh-btn{padding:6px 11px;border:1.5px solid var(--border);border-radius:6px;background:#fff;font-weight:600;font-size:12px}
-.cal-month-today-btn{background:var(--bg);color:var(--muted)}
-.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
-.cal-weekday{font-family:'Oswald',sans-serif;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);text-align:center;padding-bottom:6px;border-bottom:2px solid var(--ink);margin-bottom:3px}
-.cal-weekday.sun{color:var(--danger)}
-.cal-cell{min-width:0;min-height:76px;background:#fff;border:1.5px solid var(--border);border-radius:6px;padding:5px;display:flex;flex-direction:column;gap:4px}
-.cal-cell.outside{background:var(--bg);opacity:.55}.cal-cell.today{border-color:var(--accent-in);box-shadow:inset 0 0 0 1px var(--accent-in)}
-.cal-date-num{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;color:var(--ink)}.cal-cell.today .cal-date-num{color:var(--accent-in)}
-.cal-cell-card{background:var(--bg);border-radius:5px;padding:5px}.cal-cell-code{font-size:10.5px;font-weight:700;word-break:break-all}
-.cal-solvents{display:flex;flex-wrap:wrap;gap:3px;margin-top:3px}
-.alert-solvent-badge,.alert-tonbag-badge,.alert-missing-badge{font-family:'JetBrains Mono',monospace;font-weight:700;font-size:9.5px;padding:2px 6px;border-radius:20px;white-space:nowrap}
-.alert-solvent-badge{background:rgba(217,72,15,.1);color:var(--accent-in)}
-.alert-tonbag-badge.available{background:rgba(47,122,77,.14);color:#2F7A4D}
-.alert-missing-badge{background:var(--danger);color:#fff}
-.alert-missing-banner,.alert-diag{font-family:'Inter',sans-serif;font-size:11.5px;line-height:1.8;border-radius:6px;padding:9px 11px;margin-bottom:12px}
-.alert-missing-banner{color:#7A1C15;background:rgba(179,38,30,.08);border:1.5px solid rgba(179,38,30,.35)}
-.alert-diag{color:#6B4E10;background:rgba(232,163,61,.14);border:1.5px solid rgba(232,163,61,.5)}
-.alert-missing-item{display:inline-flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:10.5px;background:#fff;border:1px solid rgba(179,38,30,.35);border-radius:14px;padding:2px 8px;margin:2px 4px 2px 0}
-.alert-missing-checkbox{width:13px;height:13px;margin:0;accent-color:var(--danger)}
-.alert-empty,.alert-error{font-size:12px;color:var(--muted);padding:8px 2px}.alert-error{color:var(--danger)}
-.calendar-settings .field{margin-bottom:10px}.calendar-settings .field:last-child{margin-bottom:0}
-.calendar-settings-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px}
-.calendar-status-text{font-size:11px;color:var(--muted);font-family:'JetBrains Mono',monospace}
-.product-manage-row,.product-manage-add{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr) auto;gap:8px;align-items:center;margin-bottom:8px}
-.product-manage-row input{font-family:'JetBrains Mono',monospace}.product-manage-row input.rule-input{font-family:'Inter',sans-serif}
-.product-manage-add{margin-top:10px}.product-manage-add input{width:100%;min-width:0;padding:8px 10px;border:1.5px solid var(--border);border-radius:6px;font-size:12px}
-@media(max-width:1180px){.dashboard-grid{grid-template-columns:minmax(0,1fr)}.dashboard-left,.dashboard-right{width:100%}}
-@media(max-width:760px){.stats{grid-template-columns:repeat(2,minmax(0,1fr))}.wrap{padding-left:14px;padding-right:14px}}
-@media(max-width:640px){
-  .wrap{padding:12px 10px 30px}.dashboard-grid{display:flex;flex-direction:column;gap:0}.dashboard-left,.dashboard-right{width:100%;min-width:0}
-  .dashboard-left>.panel,.dashboard-right>.panel{width:100%;margin-bottom:12px;padding:12px}
-  .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}.stat-card{padding:10px 9px}.stat-card .num{font-size:23px}
-  .form-grid{grid-template-columns:minmax(0,1fr);gap:12px}.type-toggle{gap:5px}.type-toggle button{font-size:11px;padding:9px 3px}.capacity-field{max-width:100%}
-  .cal-grid{grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}.cal-cell{min-height:58px;padding:4px 3px}.cal-cell-code{font-size:9px}.alert-solvent-badge,.alert-tonbag-badge,.alert-missing-badge{font-size:8px;padding:2px 4px}
-  /* 모바일 입고내역은 1건씩 세로형 카드로 표시 */
-  .inventory-log-panel .log-scroll{max-height:none!important;overflow:visible!important}
-  .inventory-log-panel table,.inventory-log-panel tbody{display:block;width:100%}
-  .inventory-log-panel thead{display:none}
-  .inventory-log-panel #logBody tr:not(.empty-row){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 10px;width:100%;padding:8px 10px;margin-bottom:9px;border:1px solid var(--border);border-radius:8px;background:#fff}
-  .inventory-log-panel #logBody td{display:flex;align-items:center;justify-content:space-between;gap:5px;min-width:0;width:auto;padding:7px 2px;border-bottom:1px solid #edf0ed;font-size:10.5px;white-space:normal}
-  .inventory-log-panel #logBody td::before{content:attr(data-label);flex:0 0 auto;color:var(--muted);font-family:'Inter',sans-serif;font-size:10px;font-weight:600}
-  .inventory-log-panel #logBody td:nth-child(6),.inventory-log-panel #logBody td:nth-child(7){grid-column:1/-1}
-  .inventory-log-panel #logBody td:nth-child(7){justify-content:flex-end;border-bottom:0}
-  .inventory-log-panel .status-select,.inventory-log-panel .cap-select,.inventory-log-panel .memo-select{width:auto;max-width:70%;min-width:0;font-size:10px;padding:5px 3px}
-  .inventory-log-panel .memo-select{flex:1}
-  .inventory-log-panel #logBody tr.empty-row{display:block;margin:0;padding:0;border:0}
-  .inventory-log-panel #logBody tr.empty-row td{display:block;padding:22px 8px;text-align:center;border:0}
-  .inventory-log-panel #logBody tr.empty-row td::before{content:none}
-  .memo-stats-table th,.memo-stats-table td{padding:7px 4px;font-size:9.5px}.memo-stats-table td.memo-name{font-size:9.5px}
-  .product-manage-row,.product-manage-add{grid-template-columns:minmax(0,1fr)}
-  .log-header{align-items:flex-start}.log-header>div:last-child{flex-wrap:wrap}
-}
+  :root{
+    --bg:#EEF1EF;
+    --surface:#FFFFFF;
+    --ink:#1F2A24;
+    --muted:#5C6B63;
+    --accent-in:#D9480F;
+    --full:#D9480F;
+    --half:#E8A33D;
+    --empty:#7E8A96;
+    --border:#D7DBD4;
+    --danger:#B3261E;
+    --ok:#2F7D4F;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{
+    max-width:1020px;
+    margin:0 auto;
+    padding:28px 20px 60px;
+  }
+  header{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-bottom:22px;
+    border-bottom:3px solid var(--ink);
+    padding-bottom:14px;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:0.12em;
+    color:var(--muted);
+    text-transform:uppercase;
+  }
+  h1{
+    font-family:'Oswald',sans-serif;
+    font-weight:700;
+    font-size:30px;
+    letter-spacing:0.01em;
+    margin:2px 0 0;
+  }
+  .subtitle{
+    font-size:13px;
+    color:var(--muted);
+  }
+  .sync-badge{
+    display:inline-block;
+    margin-top:8px;
+    font-size:11px;
+    font-weight:600;
+    padding:4px 10px;
+    border-radius:20px;
+    border:1px solid var(--border);
+    color:var(--muted);
+    font-family:'JetBrains Mono',monospace;
+    background:#fff;
+  }
+  .sync-badge.connected{border-color:var(--ok); color:var(--ok); background:rgba(47,125,79,0.08);}
+  .sync-badge.local{border-color:var(--danger); color:var(--danger); background:rgba(179,38,30,0.06);}
 
+  /* ---- Stats ---- */
+  .stats{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:12px;
+    margin-bottom:24px;
+  }
+  .stat-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:6px;
+    padding:14px 12px 12px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .stat-card .num{
+    font-family:'Oswald',sans-serif;
+    font-size:26px;
+    font-weight:600;
+    line-height:1;
+  }
+  .stat-card .label{
+    font-size:10.5px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    margin-top:3px;
+  }
+  .stat-card.total .num{color:var(--ink);}
+  .stat-card.full .num{color:var(--full);}
+  .stat-card.half .num{color:var(--half);}
+  .stat-card.empty .num{color:var(--empty);}
 
-/* =========================================================
-   PC 가독성 보정 (전체 패널 비율 및 입고내역 열 너비)
-   - PC에서는 오른쪽 영역을 넉넉하게 배정
-   - No./날짜는 한 줄로 고정
-   - 화면 폭이 줄면 1열로 전환하고 모바일 카드형은 유지
-========================================================= */
-@media (min-width: 1341px) {
-  .wrap {
-    max-width: 1840px;
-    padding: 24px 28px 54px;
+  /* ---- Panel ---- */
+  .panel{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:18px;
+    margin-bottom:24px;
+  }
+  .panel-title{
+    font-family:'Oswald',sans-serif;
+    font-size:15px;
+    font-weight:600;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    margin-bottom:14px;
   }
 
-  .dashboard-grid {
-    grid-template-columns: minmax(0, 1.25fr) minmax(650px, 1fr);
-    gap: 20px;
-    align-items: start;
+  .form-grid{
+    display:grid;
+    grid-template-columns:1fr 1.6fr 1fr;
+    gap:14px;
+    align-items:end;
+  }
+  .field label{
+    display:block;
+    font-size:11px;
+    color:var(--muted);
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    margin-bottom:6px;
+  }
+  .field-label-row{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:6px;
+  }
+  .field-label-row label{margin-bottom:0;}
+  .manage-toggle-btn{
+    background:none;
+    border:none;
+    color:var(--accent-in);
+    font-size:11.5px;
+    font-weight:700;
+    cursor:pointer;
+    padding:2px 4px;
+    font-family:'Inter',sans-serif;
+  }
+  .manage-toggle-btn:hover{text-decoration:underline;}
+  .waste-manage{
+    margin-top:10px;
+    padding:12px;
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:6px;
+  }
+  .waste-manage-list{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-bottom:10px;
+  }
+  .waste-manage-empty{
+    font-size:12px;
+    color:var(--muted);
+    margin-bottom:10px;
+    font-family:'Inter',sans-serif;
+  }
+  .waste-chip{
+    display:flex;
+    align-items:center;
+    gap:2px;
+    background:#fff;
+    border:1.5px solid var(--border);
+    border-radius:20px;
+    padding:2px 4px 2px 10px;
+  }
+  .waste-chip input{
+    border:none;
+    background:transparent;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink);
+    width:auto;
+    min-width:44px;
+    max-width:150px;
+    padding:4px 0;
+  }
+  .waste-chip input:focus{outline:none;}
+  .waste-chip-del{
+    background:none;
+    border:none;
+    color:var(--muted);
+    cursor:pointer;
+    font-size:13px;
+    padding:3px 7px;
+    border-radius:50%;
+    line-height:1;
+  }
+  .waste-chip-del:hover{color:var(--danger); background:rgba(179,38,30,0.08);}
+  .waste-manage-add{
+    display:flex;
+    gap:8px;
+  }
+  .waste-manage-add input{
+    flex:1;
+    padding:8px 10px;
+    border:1.5px solid var(--border);
+    border-radius:6px;
+    font-family:'Inter',sans-serif;
+    font-size:13px;
+    background:#fff;
+  }
+  .waste-manage-add input:focus{outline:none; border-color:var(--ink);}
+  .waste-manage-add button{
+    padding:8px 14px;
+    border:none;
+    border-radius:6px;
+    background:var(--ink);
+    color:#fff;
+    font-weight:600;
+    font-size:12.5px;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .waste-manage-add button:hover{opacity:0.85;}
+  .waste-manage-hint{
+    font-size:11px;
+    color:var(--muted);
+    margin-top:8px;
+    font-family:'Inter',sans-serif;
+  }
+  .type-toggle{
+    display:flex;
+    gap:6px;
+  }
+  .type-toggle button{
+    flex:1;
+    padding:10px 0;
+    border-radius:6px;
+    border:1.5px solid var(--border);
+    background:#fff;
+    font-weight:600;
+    font-size:12.5px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    white-space:nowrap;
+  }
+  .type-toggle button.active[data-type="full"]{
+    background:rgba(217,72,15,0.1);
+    border-color:var(--full);
+    color:var(--full);
+  }
+  .type-toggle button.active[data-type="half"]{
+    background:rgba(232,163,61,0.15);
+    border-color:var(--half);
+    color:#8a5c0f;
+  }
+  .type-toggle button.active[data-type="empty"]{
+    background:rgba(126,138,150,0.15);
+    border-color:var(--empty);
+    color:#4b545c;
+  }
+  .qty-stepper{
+    display:flex;
+    align-items:center;
+    border:1.5px solid var(--border);
+    border-radius:6px;
+    overflow:hidden;
+  }
+  .qty-stepper button{
+    width:38px;
+    height:40px;
+    border:none;
+    background:var(--bg);
+    font-size:18px;
+    font-weight:600;
+    cursor:pointer;
+    color:var(--ink);
+  }
+  .qty-stepper input{
+    flex:1;
+    border:none;
+    text-align:center;
+    font-family:'JetBrains Mono',monospace;
+    font-size:16px;
+    font-weight:600;
+    padding:8px 4px;
+    width:100%;
+    min-width:0;
+  }
+  .qty-stepper input:focus{outline:none;}
+  input[type="date"], input[type="text"], select.select-input{
+    width:100%;
+    padding:10px 10px;
+    border:1.5px solid var(--border);
+    border-radius:6px;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    color:var(--ink);
+    background:#fff;
+  }
+  input[type="date"]:focus, input[type="text"]:focus, select.select-input:focus{
+    outline:none;
+    border-color:var(--ink);
+  }
+  .capacity-field{
+    max-width:220px;
+    margin-top:14px;
+  }
+  .full-row{
+    grid-column:1 / -1;
+  }
+  .submit-btn{
+    margin-top:16px;
+    width:100%;
+    padding:13px 0;
+    border:none;
+    border-radius:6px;
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    font-size:15px;
+    letter-spacing:0.03em;
+    color:#fff;
+    cursor:pointer;
+    background:var(--accent-in);
+    transition:opacity .12s ease;
+  }
+  .submit-btn:hover{opacity:0.9;}
+  .submit-btn:active{opacity:0.8;}
+  .hint{
+    font-size:12px;
+    color:var(--danger);
+    margin-top:8px;
+    min-height:16px;
   }
 
-  .dashboard-left > .panel,
-  .dashboard-right > .panel {
-    margin-bottom: 20px;
+  /* ---- Waste stats ---- */
+  .memo-stats-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+  }
+  .memo-stats-table th{
+    text-align:left;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--muted);
+    padding:8px 10px;
+    background:var(--bg);
+    border-bottom:1px solid var(--border);
+  }
+  .memo-stats-table td{
+    padding:9px 10px;
+    border-bottom:1px solid var(--border);
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+  }
+  .memo-stats-table tr:last-child td{border-bottom:none;}
+  .memo-stats-table td.memo-name{
+    font-family:'Inter',sans-serif;
+    font-weight:600;
+  }
+  .memo-stats-table td.num-cell{
+    text-align:right;
   }
 
-  .panel {
-    padding: 18px;
-    margin-bottom: 20px;
+  /* ---- Log ---- */
+  .log-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:12px;
+    flex-wrap:wrap;
+    gap:8px;
+  }
+  .save-btn{
+    padding:7px 14px;
+    border-radius:20px;
+    border:1.5px solid var(--ok);
+    background:#fff;
+    font-size:12px;
+    font-weight:600;
+    color:var(--ok);
+    cursor:pointer;
+    transition:all .12s ease;
+  }
+  .save-btn.dirty{
+    border-color:var(--half);
+    background:rgba(232,163,61,0.15);
+    color:#8a5c0f;
+  }
+  .save-btn.done{
+    background:var(--ok);
+    color:#fff;
+  }
+  .clear-btn{
+    padding:7px 14px;
+    border-radius:20px;
+    border:1.5px solid var(--danger);
+    background:#fff;
+    font-size:12px;
+    font-weight:600;
+    color:var(--danger);
+    cursor:pointer;
+    transition:all .12s ease;
+  }
+  table{
+    width:100%;
+    border-collapse:collapse;
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:8px;
+    overflow:hidden;
+    font-size:13px;
+  }
+  thead th{
+    text-align:left;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--muted);
+    padding:10px 12px;
+    background:var(--bg);
+    border-bottom:1px solid var(--border);
+  }
+  tbody td{
+    padding:10px 12px;
+    border-bottom:1px solid var(--border);
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    vertical-align:middle;
+  }
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:#FAFAF8;}
+  .no{color:var(--muted);}
+  .bagchip{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    font-weight:600;
+  }
+  .memo-cell{
+    font-family:'Inter',sans-serif;
+    color:var(--muted);
+    max-width:220px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .del-btn{
+    background:none;
+    border:none;
+    color:var(--muted);
+    cursor:pointer;
+    font-size:16px;
+    padding:2px 6px;
+    border-radius:4px;
+  }
+  .del-btn:hover{color:var(--danger); background:rgba(179,38,30,0.08);}
+  .edit-btn{
+    background:none;
+    border:none;
+    color:var(--muted);
+    cursor:pointer;
+    font-size:15px;
+    padding:2px 6px;
+    border-radius:4px;
+  }
+  .edit-btn:hover{color:var(--accent-in); background:rgba(217,72,15,0.08);}
+  .status-select{
+    font-family:'Inter',sans-serif;
+    font-weight:700;
+    font-size:12.5px;
+    padding:5px 8px;
+    border-radius:6px;
+    border:1.5px solid var(--border);
+    background:#fff;
+    color:var(--ink);
+    cursor:pointer;
+  }
+  .status-select:focus{outline:none;}
+  .status-select.type-full{border-color:var(--full); color:var(--full);}
+  .status-select.type-half{border-color:var(--half); color:#8a5c0f;}
+  .cap-select{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:12.5px;
+    padding:5px 8px;
+    border-radius:6px;
+    border:1.5px solid var(--half);
+    background:rgba(232,163,61,0.1);
+    color:#8a5c0f;
+    cursor:pointer;
+  }
+  .cap-select:focus{outline:none;}
+  .cap-dash{color:var(--muted);}
+  .memo-select{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:12.5px;
+    padding:5px 8px;
+    border-radius:6px;
+    border:1.5px solid var(--border);
+    background:#fff;
+    color:var(--ink);
+    cursor:pointer;
+    max-width:150px;
+  }
+  .memo-select:focus{outline:none; border-color:var(--ink);}
+  tr.editing-row{background:rgba(217,72,15,0.06);}
+  .cancel-edit-btn{
+    margin-top:8px;
+    width:100%;
+    padding:10px 0;
+    border:1.5px solid var(--border);
+    border-radius:6px;
+    font-family:'Oswald',sans-serif;
+    font-weight:600;
+    font-size:13px;
+    letter-spacing:0.03em;
+    color:var(--muted);
+    background:#fff;
+    cursor:pointer;
+  }
+  .cancel-edit-btn:hover{background:var(--bg);}
+  .edit-mode-note{
+    font-size:12px;
+    color:var(--accent-in);
+    font-weight:600;
+    margin-bottom:10px;
+    display:none;
+  }
+  .edit-mode-note.show{display:block;}
+  .empty-row td{
+    text-align:center;
+    color:var(--muted);
+    font-family:'Inter',sans-serif;
+    padding:30px 12px;
+  }
+  .log-scroll{
+    max-height:420px;
+    overflow-y:auto;
+    border-radius:8px;
+  }
+  .log-scroll table{border-radius:0;}
+  .log-scroll thead th{position:sticky; top:0; z-index:1;}
+
+  /* ---- 생산일정 캘린더 연동 ---- */
+  .calendar-settings{
+    margin-top:10px;
+    padding:12px;
+    background:var(--bg);
+    border:1px solid var(--border);
+    border-radius:6px;
+  }
+  .calendar-settings .field{margin-bottom:10px;}
+  .calendar-settings .field:last-child{margin-bottom:0;}
+  .calendar-settings-row{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    flex-wrap:wrap;
+    margin-top:10px;
+  }
+  .refresh-btn{
+    padding:8px 14px;
+    border:1.5px solid var(--border);
+    border-radius:6px;
+    background:#fff;
+    font-weight:600;
+    font-size:12.5px;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .refresh-btn:hover{background:#fff; opacity:0.8;}
+  .calendar-status-text{
+    font-size:11.5px;
+    color:var(--muted);
+    font-family:'JetBrains Mono',monospace;
+  }
+  .calendar-help{
+    font-size:11px;
+    color:var(--muted);
+    margin-top:10px;
+    line-height:1.6;
+    font-family:'Inter',sans-serif;
+  }
+  .cal-month-header{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:12px;
+    margin-bottom:14px;
+  }
+  .cal-month-title{
+    font-family:'Oswald',sans-serif;
+    font-size:16px;
+    font-weight:700;
+    letter-spacing:0.02em;
+    color:var(--ink);
+    min-width:110px;
+    text-align:center;
+  }
+  .cal-month-nav-btn{
+    padding:6px 12px;
+    border:1.5px solid var(--border);
+    border-radius:6px;
+    background:#fff;
+    font-weight:700;
+    font-size:12.5px;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .cal-month-nav-btn:hover{opacity:0.75;}
+  .cal-month-today-btn{
+    padding:6px 12px;
+    border:1.5px solid var(--border);
+    border-radius:6px;
+    background:var(--bg);
+    font-weight:600;
+    font-size:12px;
+    cursor:pointer;
+    font-family:'Inter',sans-serif;
+    color:var(--muted);
+  }
+  .cal-grid{
+    display:grid;
+    grid-template-columns:repeat(7, 1fr);
+    gap:5px;
+  }
+  .cal-weekday{
+    font-family:'Oswald',sans-serif;
+    font-size:11.5px;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    color:var(--muted);
+    text-align:center;
+    padding-bottom:6px;
+    border-bottom:2px solid var(--ink);
+    margin-bottom:4px;
+  }
+  .cal-weekday.sun{color:var(--danger);}
+  .cal-cell{
+    min-height:78px;
+    background:#fff;
+    border:1.5px solid var(--border);
+    border-radius:6px;
+    padding:6px 6px 8px;
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+  }
+  .cal-cell.outside{background:var(--bg); opacity:0.55;}
+  .cal-cell.today{border-color:var(--accent-in); box-shadow:inset 0 0 0 1px var(--accent-in);}
+  .cal-date-num{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    font-weight:700;
+    color:var(--ink);
+  }
+  .cal-cell.today .cal-date-num{color:var(--accent-in);}
+  .cal-cell-card{
+    background:var(--bg);
+    border-radius:5px;
+    padding:5px 6px;
+  }
+  .cal-cell-card:not(:last-child){margin-bottom:3px;}
+  .cal-cell-code{
+    font-family:'Inter',sans-serif;
+    font-size:11px;
+    font-weight:700;
+    color:var(--ink);
+    word-break:break-all;
+  }
+  .cal-cell-daynote{
+    font-family:'JetBrains Mono',monospace;
+    font-size:9.5px;
+    color:var(--muted);
+  }
+  .cal-solvents{
+    display:flex;
+    flex-wrap:wrap;
+    gap:3px;
+    margin-top:3px;
+  }
+  .alert-solvent-badge{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:10.5px;
+    padding:2px 7px;
+    border-radius:20px;
+    background:rgba(217,72,15,0.1);
+    color:var(--accent-in);
+    white-space:nowrap;
+  }
+  .alert-solvent-badge.unknown{
+    background:rgba(126,138,150,0.15);
+    color:#4b545c;
+  }
+  .alert-tonbag-badge{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:10px;
+    padding:2px 7px;
+    border-radius:20px;
+    white-space:nowrap;
+  }
+  .alert-tonbag-badge.available{
+    background:rgba(47,122,77,0.14);
+    color:#2F7A4D;
+  }
+  .alert-tonbag-badge.none{
+    background:rgba(179,38,30,0.1);
+    color:var(--danger);
+  }
+  .alert-missing-badge{
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:10px;
+    padding:2px 7px;
+    border-radius:20px;
+    background:var(--danger);
+    color:#fff;
+    white-space:nowrap;
+  }
+  .alert-missing-banner{
+    font-family:'Inter',sans-serif;
+    font-size:12px;
+    line-height:1.8;
+    color:#7A1C15;
+    background:rgba(179,38,30,0.08);
+    border:1.5px solid rgba(179,38,30,0.35);
+    border-radius:6px;
+    padding:10px 12px;
+    margin-bottom:14px;
+  }
+  .alert-missing-item{
+    display:inline-flex;
+    align-items:center;
+    gap:5px;
+    font-family:'JetBrains Mono',monospace;
+    font-weight:700;
+    font-size:11px;
+    background:#fff;
+    border:1px solid rgba(179,38,30,0.35);
+    border-radius:14px;
+    padding:2px 9px;
+    margin:2px 4px 2px 0;
+    cursor:pointer;
+    user-select:none;
+  }
+  .alert-missing-checkbox{
+    width:13px;
+    height:13px;
+    margin:0;
+    cursor:pointer;
+    accent-color:var(--danger);
+    flex:none;
+  }
+  .alert-diag{
+    font-family:'Inter',sans-serif;
+    font-size:12px;
+    line-height:1.8;
+    color:#6B4E10;
+    background:rgba(232,163,61,0.14);
+    border:1.5px solid rgba(232,163,61,0.5);
+    border-radius:6px;
+    padding:10px 12px;
+    margin-bottom:14px;
+  }
+  .alert-empty{
+    font-size:12.5px;
+    color:var(--muted);
+    font-family:'Inter',sans-serif;
+    padding:8px 2px;
+  }
+  .alert-error{
+    font-size:12.5px;
+    color:var(--danger);
+    font-family:'Inter',sans-serif;
+    padding:8px 2px;
+  }
+  @media (max-width: 640px){
+    .cal-cell{min-height:60px; padding:4px;}
+    .cal-cell-code{font-size:9.5px;}
+    .alert-solvent-badge, .alert-tonbag-badge, .alert-missing-badge{font-size:9px; padding:2px 5px;}
+  }
+  .product-manage-row{
+    display:grid;
+    grid-template-columns:1fr 2fr auto;
+    gap:8px;
+    align-items:center;
+    margin-bottom:8px;
+  }
+  .product-manage-row input{
+    font-family:'JetBrains Mono',monospace;
+  }
+  .product-manage-row input.rule-input{font-family:'Inter',sans-serif;}
+  .product-manage-add{
+    display:grid;
+    grid-template-columns:1fr 2fr auto;
+    gap:8px;
+    margin-top:10px;
   }
 
-  .panel-title {
-    font-size: 16px;
-    margin-bottom: 16px;
+  @media (max-width:760px){
+    .stats{grid-template-columns:repeat(3,1fr);}
   }
-
-  .stats {
-    gap: 14px;
-    margin-bottom: 20px;
+  @media (max-width:640px){
+    .stats{grid-template-columns:repeat(2,1fr);}
+    .form-grid{grid-template-columns:1fr;}
+    .memo-cell{max-width:100px;}
+    .product-manage-row, .product-manage-add{grid-template-columns:1fr;}
   }
-
-  .stat-card {
-    padding: 15px 14px;
-  }
-
-  .stat-card .num {
-    font-size: 28px;
-  }
-
-  .field label {
-    font-size: 11.5px;
-    margin-bottom: 7px;
-  }
-
-  input[type="date"],
-  input[type="text"],
-  select.select-input {
-    padding: 10px 11px;
-    font-size: 13px;
-    min-height: 40px;
-  }
-
-  .type-toggle button {
-    min-height: 40px;
-    font-size: 12px;
-  }
-
-  .qty-stepper button {
-    height: 40px;
-  }
-
-  .cal-grid {
-    gap: 6px;
-  }
-
-  .cal-cell {
-    min-height: 82px;
-    padding: 6px;
-  }
-
-  .cal-weekday {
-    font-size: 12px;
-    padding-bottom: 7px;
-  }
-
-  .cal-date-num {
-    font-size: 12px;
-  }
-
-  .cal-cell-code {
-    font-size: 11px;
-  }
-
-  .cal-cell-card {
-    padding: 6px;
-  }
-
-  /* 입고내역 표: colgroup의 9/17/14/12/8/30/10% 폭을 그대로 사용 */
-  .inventory-log-panel .log-scroll {
-    max-height: none !important;
-    height: auto !important;
-    overflow: visible !important;
-  }
-
-  .inventory-log-panel table {
-    width: 100%;
-    min-width: 0;
-    table-layout: fixed;
-  }
-
-  .inventory-log-panel thead th {
-    padding: 10px 6px;
-    font-size: 11px;
-    white-space: nowrap;
-  }
-
-  .inventory-log-panel tbody td {
-    padding: 9px 6px;
-    font-size: 11.5px;
-    line-height: 1.35;
-    vertical-align: middle;
-    overflow-wrap: normal;
-    word-break: keep-all;
-  }
-
-  /* 번호와 날짜를 절대 줄바꿈하지 않음 */
-  .inventory-log-panel #logBody td:nth-child(1),
-  .inventory-log-panel #logBody td:nth-child(2),
-  .inventory-log-panel thead th:nth-child(1),
-  .inventory-log-panel thead th:nth-child(2) {
-    white-space: nowrap !important;
-    word-break: keep-all !important;
-    overflow-wrap: normal !important;
-  }
-
-  .inventory-log-panel #logBody td:nth-child(1) {
-    font-size: 11px;
-    letter-spacing: -0.25px;
-  }
-
-  .inventory-log-panel #logBody td:nth-child(2) {
-    font-size: 10.5px;
-    letter-spacing: -0.45px;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .inventory-log-panel .status-select,
-  .inventory-log-panel .cap-select,
-  .inventory-log-panel .memo-select {
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    min-width: 0;
-    padding: 6px 4px;
-    font-size: 10.5px;
-    white-space: nowrap;
-  }
-
-  .inventory-log-panel .edit-btn,
-  .inventory-log-panel .del-btn {
-    padding: 3px 2px;
-    font-size: 15px;
-    white-space: nowrap;
-  }
-
-  .memo-stats-table th {
-    padding: 9px 8px;
-    font-size: 11px;
-  }
-
-  .memo-stats-table td {
-    padding: 9px 8px;
-    font-size: 12px;
-  }
-
-  .save-btn,
-  .clear-btn {
-    padding: 8px 14px;
-    font-size: 12px;
-  }
-}
-
-/* 중간 폭 PC 및 태블릿에서는 패널을 위아래로 배치 */
-@media (max-width: 1340px) {
-  .dashboard-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .dashboard-left,
-  .dashboard-right {
-    width: 100%;
-  }
-
-  .inventory-log-panel table {
-    table-layout: fixed;
-  }
-
-  .inventory-log-panel #logBody td:nth-child(1),
-  .inventory-log-panel #logBody td:nth-child(2) {
-    white-space: nowrap;
-    word-break: keep-all;
-    overflow-wrap: normal;
-  }
-}
-
-/* 모바일은 기존 세로형 카드 레이아웃과 여백을 유지 */
-@media (max-width: 640px) {
-  .wrap {
-    padding: 12px 10px 30px;
-  }
-
-  .dashboard-left > .panel,
-  .dashboard-right > .panel {
-    padding: 12px;
-    margin-bottom: 12px;
-  }
-
-  .inventory-log-panel #logBody td:nth-child(1),
-  .inventory-log-panel #logBody td:nth-child(2) {
-    white-space: nowrap;
-  }
-}
-
 </style>
 </head>
 <body>
 <div class="wrap">
+
   <header>
     <div>
       <div class="eyebrow">Bulk Bag Inventory</div>
@@ -399,280 +848,1658 @@ tr.editing-row{background:rgba(217,72,15,.06)}
   </header>
 
   <div class="stats">
-    <div class="stat-card total"><div><div class="num" id="statTotal">0</div><div class="label">총 재고 (개)</div></div></div>
-    <div class="stat-card full"><div><div class="num" id="statFull">0</div><div class="label">Full 재고</div></div></div>
-    <div class="stat-card half"><div><div class="num" id="statHalf">0</div><div class="label">사용 잔량</div></div></div>
-    <div class="stat-card empty"><div><div class="num" id="statEmpty">0</div><div class="label">빈톤백 재고</div></div></div>
-  </div>
-
-  <div class="dashboard-grid">
-    <div class="dashboard-left">
-      <div class="panel">
-        <div class="log-header">
-          <div class="panel-title" style="margin-bottom:0">생산일정 연동 — 월별 예상 폐용매 캘린더</div>
-          <div style="display:flex;gap:8px;flex-wrap:wrap">
-            <button type="button" class="manage-toggle-btn" id="productManageToggleBtn" onclick="toggleProductManage()">⚙ 품목 매핑 관리</button>
-            <button type="button" class="manage-toggle-btn" id="calendarSettingsToggleBtn" onclick="toggleCalendarSettings()">⚙ 캘린더 연동 설정</button>
-          </div>
-        </div>
-        <div class="calendar-settings" id="calendarSettingsPanel" style="display:none">
-          <div class="field"><label>구글 캘린더 ID</label><input type="text" id="calCalendarId" placeholder="예: abcdef123456@group.calendar.google.com" onchange="handleCalendarConfigInput()"></div>
-          <div class="field"><label>구글 API 키</label><input type="text" id="calApiKey" placeholder="Google Cloud에서 발급받은 API 키" onchange="handleCalendarConfigInput()"></div>
-          <div class="calendar-settings-row"><button type="button" class="refresh-btn" onclick="refreshCalendarAlerts()">🔄 지금 새로고침</button><span class="calendar-status-text" id="calendarStatusText"></span></div>
-          <div class="calendar-help">※ 생산일정이 있는 구글 캘린더를 설정 → "액세스 권한"에서 "공개 사용 설정"으로 바꾸고, Google Cloud 콘솔에서 Calendar API를 사용 설정한 뒤 API 키를 발급받아 위에 입력하세요. 캘린더 ID는 캘린더 설정 → "캘린더 통합" 항목에서 확인할 수 있습니다. 값을 입력한 뒤 하단 "저장" 버튼을 눌러야 모두에게 반영됩니다.</div>
-        </div>
-        <div class="waste-manage" id="productManagePanel" style="display:none">
-          <div id="productManageList"></div>
-          <div class="product-manage-add"><input type="text" id="newProductCode" placeholder="품목 코드 (예: LX0556)"><input type="text" id="newProductRule" placeholder="폐용매 (예: MeOH 또는 1일차:XY, 2일차:XY+ACT)"><button type="button" onclick="addProductMapping()">추가</button></div>
-          <div class="waste-manage-hint">여러 날에 걸쳐 생산되는 품목은 "1일차:XY, 2일차:XY+ACT"처럼 일차별로 입력하세요. 하루짜리 품목은 폐용매 이름만 입력하면 됩니다. 변경 후 하단 "저장" 버튼을 눌러야 모두에게 반영됩니다.</div>
-        </div>
-        <div id="calendarAlertsBody" style="margin-top:14px"><div class="alert-empty">캘린더 연동 설정을 확인하는 중…</div></div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-title" id="formPanelTitle">입고 등록</div>
-        <div class="edit-mode-note" id="editModeNote">✎ 이 항목을 수정하는 중입니다. 내용을 고친 뒤 "수정 완료"를 누르세요.</div>
-        <div class="form-grid">
-          <div class="field"><label>날짜</label><input type="date" id="fDate"></div>
-          <div class="field"><label>구분 (내용물 상태)</label><div class="type-toggle">
-            <button type="button" data-type="full" class="active" onclick="setType('full')">● Full</button>
-            <button type="button" data-type="half" onclick="setType('half')">◐ 사용중</button>
-            <button type="button" data-type="empty" onclick="setType('empty')">○ 빈백</button>
-          </div></div>
-          <div class="field"><label>수량 (개)</label><div class="qty-stepper"><button type="button" onclick="stepQty(-1)">−</button><input type="text" inputmode="numeric" id="fQty" value="1"><button type="button" onclick="stepQty(1)">+</button></div></div>
-          <div class="field full-row">
-            <div class="field-label-row"><label>폐용매 (선택)</label><button type="button" class="manage-toggle-btn" id="wasteManageToggleBtn" onclick="toggleWasteManage()">⚙ 목록 관리</button></div>
-            <select class="select-input" id="fMemo" onchange="handleMemoSelectChange(this)"><option value="">선택</option></select>
-            <input type="text" id="fMemoOther" class="select-input" style="display:none;margin-top:8px" placeholder="폐용매 이름을 직접 입력하세요">
-            <div class="waste-manage" id="wasteManagePanel" style="display:none">
-              <div class="waste-manage-list" id="wasteManageList"></div>
-              <div class="waste-manage-add"><input type="text" id="newWasteInput" placeholder="새 폐용매 이름 입력 (예: DMF)" onkeydown="if(event.key==='Enter'){event.preventDefault();addWastePreset()}"><button type="button" onclick="addWastePreset()">추가</button></div>
-              <div class="waste-manage-hint">이름 칸을 직접 고쳐서 수정하고, ✕로 삭제할 수 있습니다. 목록 변경도 하단 "저장" 버튼을 눌러야 모두에게 반영됩니다.</div>
-            </div>
-          </div>
-        </div>
-        <div class="field capacity-field" id="capacityField" style="display:none"><label>용량 (L)</label><select class="select-input" id="fCapacity"><option value="">선택</option><option value="100">100L</option><option value="200">200L</option><option value="300">300L</option><option value="400">400L</option><option value="500">500L</option><option value="600">600L</option><option value="700">700L</option><option value="800">800L</option><option value="900">900L</option></select></div>
-        <div style="font-size:11px;color:var(--muted);margin-top:12px">※ Full / 사용으로 등록하면 같은 수량만큼 빈톤백 재고에서 자동 차감됩니다.</div>
-        <button class="submit-btn" id="submitBtn" onclick="submitEntry()">입고 등록</button>
-        <button class="cancel-edit-btn" id="cancelEditBtn" style="display:none" onclick="cancelEdit()">수정 취소</button>
-        <div class="hint" id="formHint"></div>
+    <div class="stat-card total">
+      <div>
+        <div class="num" id="statTotal">0</div>
+        <div class="label">총 재고 (개)</div>
       </div>
     </div>
-
-    <div class="dashboard-right">
-      <div class="panel">
-        <div class="panel-title">폐용매 통계</div>
-        <div class="log-scroll" style="max-height:none"><table class="memo-stats-table" id="memoStatsTable"><thead><tr><th>폐용매</th><th style="text-align:right">건수</th><th style="text-align:right">FULL</th><th style="text-align:right">사용</th><th style="text-align:right">빈백</th><th style="text-align:right">합계 (개)</th></tr></thead><tbody id="memoStatsBody"></tbody></table></div>
+    <div class="stat-card full">
+      <div>
+        <div class="num" id="statFull">0</div>
+        <div class="label">Full 재고</div>
       </div>
-      <div class="panel inventory-log-panel">
-        <div class="log-header">
-          <div class="panel-title" style="margin-bottom:0">입고 내역</div>
-          <div style="display:flex;gap:8px"><button class="save-btn" id="saveBtn" onclick="handleSaveClick()">💾 저장</button><button class="clear-btn" id="clearBtn" onclick="handleClearClick()">전체삭제</button></div>
-        </div>
-        <div class="log-scroll"><table><colgroup><col style="width:9%"><col style="width:17%"><col style="width:14%"><col style="width:12%"><col style="width:8%"><col style="width:30%"><col style="width:10%"></colgroup><thead><tr><th>No.</th><th>날짜</th><th>상태</th><th>용량</th><th>수량</th><th>폐용매</th><th>작업</th></tr></thead><tbody id="logBody"></tbody></table></div>
+    </div>
+    <div class="stat-card half">
+      <div>
+        <div class="num" id="statHalf">0</div>
+        <div class="label">사용 잔량</div>
+      </div>
+    </div>
+    <div class="stat-card empty">
+      <div>
+        <div class="num" id="statEmpty">0</div>
+        <div class="label">빈톤백 재고</div>
       </div>
     </div>
   </div>
+
+  <div class="panel">
+    <div class="log-header">
+      <div class="panel-title" style="margin-bottom:0;">생산일정 연동 — 월별 예상 폐용매 캘린더</div>
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button type="button" class="manage-toggle-btn" id="productManageToggleBtn" onclick="toggleProductManage()">⚙ 품목 매핑 관리</button>
+        <button type="button" class="manage-toggle-btn" id="calendarSettingsToggleBtn" onclick="toggleCalendarSettings()">⚙ 캘린더 연동 설정</button>
+      </div>
+    </div>
+
+    <div class="calendar-settings" id="calendarSettingsPanel" style="display:none;">
+      <div class="field">
+        <label>구글 캘린더 ID</label>
+        <input type="text" id="calCalendarId" placeholder="예: abcdef123456@group.calendar.google.com" onchange="handleCalendarConfigInput()">
+      </div>
+      <div class="field">
+        <label>구글 API 키</label>
+        <input type="text" id="calApiKey" placeholder="Google Cloud에서 발급받은 API 키" onchange="handleCalendarConfigInput()">
+      </div>
+      <div class="calendar-settings-row">
+        <button type="button" class="refresh-btn" onclick="refreshCalendarAlerts()">🔄 지금 새로고침</button>
+        <span class="calendar-status-text" id="calendarStatusText"></span>
+      </div>
+      <div class="calendar-help">※ 생산일정이 있는 구글 캘린더를 설정 → "액세스 권한"에서 "공개 사용 설정"으로 바꾸고, Google Cloud 콘솔에서 Calendar API를 사용 설정한 뒤 API 키를 발급받아 위에 입력하세요. 캘린더 ID는 캘린더 설정 → "캘린더 통합" 항목에서 확인할 수 있습니다. 값을 입력한 뒤 하단 "저장" 버튼을 눌러야 모두에게 반영됩니다.</div>
+    </div>
+
+    <div class="waste-manage" id="productManagePanel" style="display:none;">
+      <div id="productManageList"></div>
+      <div class="product-manage-add">
+        <input type="text" id="newProductCode" placeholder="품목 코드 (예: LX0556)">
+        <input type="text" id="newProductRule" placeholder="폐용매 (예: MeOH 또는 1일차:XY, 2일차:XY+ACT)">
+        <button type="button" onclick="addProductMapping()">추가</button>
+      </div>
+      <div class="waste-manage-hint">여러 날에 걸쳐 생산되는 품목은 "1일차:XY, 2일차:XY+ACT"처럼 일차별로 입력하세요. 하루짜리 품목은 폐용매 이름만 입력하면 됩니다 (예: MeOH, 또는 같은 날 여러 개면 TOL,ACT). 변경 후 하단 "저장" 버튼을 눌러야 모두에게 반영됩니다.</div>
+    </div>
+
+    <div id="calendarAlertsBody" style="margin-top:14px;">
+      <div class="alert-empty">캘린더 연동 설정을 확인하는 중…</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title" id="formPanelTitle">입고 등록</div>
+    <div class="edit-mode-note" id="editModeNote">✎ 이 항목을 수정하는 중입니다. 내용을 고친 뒤 "수정 완료"를 누르세요.</div>
+
+    <div class="form-grid">
+      <div class="field">
+        <label>날짜</label>
+        <input type="date" id="fDate">
+      </div>
+      <div class="field">
+        <label>구분 (내용물 상태)</label>
+        <div class="type-toggle">
+          <button data-type="full" class="active" onclick="setType('full')">● Full</button>
+          <button data-type="half" onclick="setType('half')">◐ 사용중</button>
+          <button data-type="empty" onclick="setType('empty')">○ 빈백</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>수량 (개)</label>
+        <div class="qty-stepper">
+          <button type="button" onclick="stepQty(-1)">−</button>
+          <input type="text" inputmode="numeric" id="fQty" value="1">
+          <button type="button" onclick="stepQty(1)">+</button>
+        </div>
+      </div>
+      <div class="field full-row">
+        <div class="field-label-row">
+          <label>폐용매 (선택)</label>
+          <button type="button" class="manage-toggle-btn" id="wasteManageToggleBtn" onclick="toggleWasteManage()">⚙ 목록 관리</button>
+        </div>
+        <select class="select-input" id="fMemo" onchange="handleMemoSelectChange(this)">
+          <option value="">선택</option>
+        </select>
+        <input type="text" id="fMemoOther" class="select-input" style="display:none; margin-top:8px;" placeholder="폐용매 이름을 직접 입력하세요">
+        <div class="waste-manage" id="wasteManagePanel" style="display:none;">
+          <div class="waste-manage-list" id="wasteManageList"></div>
+          <div class="waste-manage-add">
+            <input type="text" id="newWasteInput" placeholder="새 폐용매 이름 입력 (예: DMF)" onkeydown="if(event.key==='Enter'){event.preventDefault(); addWastePreset();}">
+            <button type="button" onclick="addWastePreset()">추가</button>
+          </div>
+          <div class="waste-manage-hint">이름 칸을 직접 고쳐서 수정하고, ✕로 삭제할 수 있습니다. 목록 변경도 하단 "저장" 버튼을 눌러야 모두에게 반영됩니다.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field capacity-field" id="capacityField" style="display:none;">
+      <label>용량 (L)</label>
+      <select class="select-input" id="fCapacity">
+        <option value="">선택</option>
+        <option value="100">100L</option>
+        <option value="200">200L</option>
+        <option value="300">300L</option>
+        <option value="400">400L</option>
+        <option value="500">500L</option>
+        <option value="600">600L</option>
+        <option value="700">700L</option>
+        <option value="800">800L</option>
+        <option value="900">900L</option>
+      </select>
+    </div>
+
+    <div style="font-size:11.5px; color:var(--muted); margin-top:12px;">※ Full / 사용으로 등록하면 같은 수량만큼 빈톤백 재고에서 자동 차감됩니다.</div>
+    <button class="submit-btn" id="submitBtn" onclick="submitEntry()">입고 등록</button>
+    <button class="cancel-edit-btn" id="cancelEditBtn" style="display:none;" onclick="cancelEdit()">수정 취소</button>
+    <div class="hint" id="formHint"></div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-title">폐용매 통계</div>
+    <div class="log-scroll" style="max-height:none;">
+      <table class="memo-stats-table" id="memoStatsTable">
+        <thead>
+          <tr>
+            <th>폐용매</th>
+            <th style="text-align:right;">건수</th>
+            <th style="text-align:right;">Full</th>
+            <th style="text-align:right;">사용</th>
+            <th style="text-align:right;">빈백</th>
+            <th style="text-align:right;">합계 (개)</th>
+          </tr>
+        </thead>
+        <tbody id="memoStatsBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="log-header">
+      <div class="panel-title" style="margin-bottom:0;">입고 내역</div>
+      <div style="display:flex; gap:8px;">
+        <button class="save-btn" id="saveBtn" onclick="handleSaveClick()">💾 저장</button>
+        <button class="clear-btn" id="clearBtn" onclick="handleClearClick()">전체삭제</button>
+      </div>
+    </div>
+    <div class="log-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>No.</th>
+            <th>날짜</th>
+            <th>상태</th>
+            <th>용량</th>
+            <th>수량</th>
+            <th>폐용매</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="logBody">
+        </tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 
 <script>
-const STORAGE_KEY='tonbag_entries';
-const PRESETS_STORAGE_KEY='tonbag_waste_presets';
-const PRODUCT_MAP_STORAGE_KEY='tonbag_product_waste_map';
-const CALENDAR_CONFIG_STORAGE_KEY='tonbag_calendar_config';
-const DISMISSED_MISSING_STORAGE_KEY='tonbag_dismissed_missing';
-const TYPE_LABELS={full:'Full',half:'사용',empty:'빈백'};
-const TYPE_RATIO={full:1,half:.5,empty:0};
-const TYPE_COLOR_VAR={full:'--full',half:'--half',empty:'--empty'};
-const DEFAULT_WASTE_PRESETS=['EA+EtOH','MeOH','EA+TOL','ACT','XY','XY+ACT','TOL+MeOH','TOL','MeOH+ACT'];
-const OTHER_VALUE='__other__';
-const LEGACY_WASTE_RENAMES={'EtOH+EA':'EA+EtOH'};
-function applyLegacyWasteRenames(value){return Object.prototype.hasOwnProperty.call(LEGACY_WASTE_RENAMES,value)?LEGACY_WASTE_RENAMES[value]:value}
-const DEFAULT_PRODUCT_WASTE_MAP={
-  'GP-A079':{3:['EA+EtOH']},'O0711':{2:['MeOH']},'LHT-6634':{1:['MeOH']},'O0731':{1:['MeOH']},
-  'HTM-K940':{1:['EA+TOL']},'C383':{1:['ACT']},'O0330':{1:['ACT']},'O0830':{1:['EA+TOL']},
-  'LX0566':{1:['XY'],2:['XY+ACT']},'LX0556':{1:['TOL+MeOH']},'G0720':{2:['TOL','MeOH+ACT']}
+const STORAGE_KEY = 'tonbag_entries'; // Firebase 연결 실패시에만 쓰는 로컬(이 브라우저 전용) 백업 키
+const PRESETS_STORAGE_KEY = 'tonbag_waste_presets'; // 폐용매 목록의 로컬 백업 키 (Firebase 실패시에만 사용)
+const PRODUCT_MAP_STORAGE_KEY = 'tonbag_product_waste_map'; // 품목→폐용매 매핑의 로컬 백업 키 (Firebase 실패시에만 사용)
+const CALENDAR_CONFIG_STORAGE_KEY = 'tonbag_calendar_config'; // 캘린더 연동 설정(ID/API키)의 로컬 백업 키 (Firebase 실패시에만 사용)
+const DISMISSED_MISSING_STORAGE_KEY = 'tonbag_dismissed_missing'; // "폐액 미기입" 체크(확인 완료 처리)한 항목의 로컬 백업 키 (Firebase 실패시에만 사용)
+const TYPE_LABELS = { full: 'Full', half: '사용', empty: '빈백' };
+const TYPE_RATIO = { full: 1, half: 0.5, empty: 0 };
+const TYPE_COLOR_VAR = { full: '--full', half: '--half', empty: '--empty' };
+// 처음 시작할 때 기본으로 들어있는 폐용매 목록. 이후에는 "목록 관리"에서
+// 자유롭게 추가/수정/삭제할 수 있고, 그 결과가 wastePresets에 저장된다.
+const DEFAULT_WASTE_PRESETS = ['EA+EtOH','MeOH','EA+TOL','ACT','XY','XY+ACT','TOL+MeOH','TOL','MeOH+ACT'];
+// 목록에 없는 폐용매를 그때그때 직접 입력할 수 있도록 하는 특수 옵션 값
+const OTHER_VALUE = '__other__';
+// 예전 표기를 새 표기로 자동 교정하기 위한 이름 매핑. 공유 저장소(Firestore)에
+// 예전 이름으로 이미 저장되어 있으면 DEFAULT_WASTE_PRESETS만 바꿔서는 화면에
+// 반영되지 않으므로, 불러온 데이터(wastePresets, 각 기록의 memo)에도 이 매핑을
+// 적용해서 예전 이름이 보이면 자동으로 새 이름으로 바꿔준다.
+const LEGACY_WASTE_RENAMES = { 'EtOH+EA': 'EA+EtOH' };
+function applyLegacyWasteRenames(value){
+  return Object.prototype.hasOwnProperty.call(LEGACY_WASTE_RENAMES, value) ? LEGACY_WASTE_RENAMES[value] : value;
+}
+
+/* ============================================================
+   생산일정 캘린더 연동 — 품목 → 폐용매 매핑
+   - 구글 캘린더(생산 일정)를 읽어와서, 오늘/내일 생산 예정인 품목의 이벤트
+     제목에 이 매핑의 품목 코드가 들어있으면 그 품목에서 나오는 폐용매를
+     알려준다. 며칠에 걸쳐 생산되는 품목(예: LX0566)은 이벤트가 시작일부터
+     며칠짜리인지를 보고 "며칠째"인지 계산해서, 그 날짜에 맞는 폐용매를 찾는다.
+   - {일차: [폐용매, ...]} 형태. 하루짜리 품목은 1일차만 있으면 된다.
+   - "⚙ 품목 매핑 관리"에서 자유롭게 추가/수정/삭제할 수 있고, 그 결과가
+     productWasteMap에 저장된다(폐용매 목록 관리와 동일한 방식).
+============================================================ */
+const DEFAULT_PRODUCT_WASTE_MAP = {
+  'GP-A079': { 3: ['EA+EtOH'] },
+  'O0711': { 2: ['MeOH'] },
+  'LHT-6634': { 1: ['MeOH'] },
+  'O0731': { 1: ['MeOH'] },
+  'HTM-K940': { 1: ['EA+TOL'] },
+  'C383': { 1: ['ACT'] },
+  'O0330': { 1: ['ACT'] },
+  'O0830': { 1: ['EA+TOL'] },
+  'LX0566': { 1: ['XY'], 2: ['XY+ACT'] },
+  'LX0556': { 1: ['TOL+MeOH'] },
+  'G0720': { 2: ['TOL', 'MeOH+ACT'] }
 };
-function cloneProductWasteMap(map){return JSON.parse(JSON.stringify(map||{}))}
-let entries=[];
-let wastePresets=DEFAULT_WASTE_PRESETS.slice();
-let productWasteMap=cloneProductWasteMap(DEFAULT_PRODUCT_WASTE_MAP);
-let calendarConfig={calendarId:'',apiKey:''};
-let calendarEvents=[];
-let calendarFetchState='idle';
-let calendarFetchError='';
-let calendarLastCheckedAt=null;
-let calendarAutoFetchDone=false;
-let calendarViewMonth=null;
-let pendingCapEntryIds=new Set();
-let dismissedMissingKeys=new Set();
-let wasteManageOpen=false,productManageOpen=false,calendarSettingsOpen=false;
-let currentType='full',editingId=null,isDirty=false;
-const FIREBASE_CONFIG={apiKey:'AIzaSyBtf8lX15eLMRVKthHEzjl4pJKJTq5gVvk',authDomain:'equipment-operation-log.firebaseapp.com',projectId:'equipment-operation-log',storageBucket:'equipment-operation-log.firebasestorage.app',messagingSenderId:'695600318374',appId:'1:695600318374:web:795fcf2a3f0179570cf167'};
-let firebaseDb=null,useFirebase=false,unsubscribeEntries=null,saveClickTimer=null;
-function tonbagDocRef(){return firebaseDb.collection('tonbag').doc('entries')}
-function isFirebaseConfigured(){return !!(FIREBASE_CONFIG&&FIREBASE_CONFIG.apiKey&&FIREBASE_CONFIG.projectId)}
-function withTimeout(promise,ms){return Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),ms))])}
+function cloneProductWasteMap(map){
+  return JSON.parse(JSON.stringify(map || {}));
+}
+
+let entries = [];
+let wastePresets = DEFAULT_WASTE_PRESETS.slice();
+let productWasteMap = cloneProductWasteMap(DEFAULT_PRODUCT_WASTE_MAP);
+let calendarConfig = { calendarId: '', apiKey: '' };
+let calendarEvents = []; // 마지막으로 불러온 구글 캘린더 이벤트 목록 (오늘~내일 범위)
+let calendarFetchState = 'idle'; // idle(설정 전) | loading | ok | error
+let calendarFetchError = '';
+let calendarLastCheckedAt = null;
+let calendarAutoFetchDone = false; // 설정이 처음 로드됐을 때 한 번만 자동으로 불러오기 위한 플래그
+let calendarViewMonth = null; // 현재 달력에 표시 중인 달의 1일(Date). null이면 이번 달.
+let pendingCapEntryIds = new Set(); // 용량(기존수량)을 바꿨지만 아직 "저장"을 누르지 않은 입고내역 id — 저장 시점에 입고등록으로 인식한다
+let dismissedMissingKeys = new Set(); // "폐액 미기입" 목록에서 체크박스로 확인 처리한 항목(날짜|품목코드|폐용매) 키 모음
+let wasteManageOpen = false;
+let productManageOpen = false;
+let calendarSettingsOpen = false;
+let currentType = 'full';
+let editingId = null; // 현재 "입고내역"에서 수정 중인 항목의 id (null이면 신규 등록 모드)
+let isDirty = false; // "저장" 버튼을 누르기 전까지의, 아직 저장되지 않은 변경사항이 있는지 여부
+
+/* ============================================================
+   FIREBASE (공유 클라우드 저장소)
+   - 기기가동 기록서(eqlog-app)와 같은 Firebase 프로젝트를 재사용합니다.
+     그 프로젝트의 Firestore 보안규칙이 이미 "모든 문서 읽기/쓰기 허용"으로
+     열려 있어서, 여기서는 새 컬렉션("tonbag")만 쓰면 되고 Firebase
+     콘솔에서 따로 설정할 게 없습니다.
+   - 연결에 실패하면 이 브라우저의 localStorage에만 저장되며(예전 방식과
+     동일), 다른 사람/기기와 공유되지 않습니다. 화면 상단 배지로 현재
+     상태(공유됨 / 단독 실행)를 항상 보여줍니다.
+   - 여러 사람이 동시에 쓰는 경우를 대비해 onSnapshot 실시간 구독을 사용:
+     누군가 입고를 등록하면 다른 사람 화면에도 새로고침 없이 바로 반영됩니다.
+     (단, 아주 짧은 순간 두 명이 동시에 저장하면 나중 저장이 앞선 저장을
+     덮어쓸 수 있습니다 — 소규모 사내 사용 기준으로는 문제되지 않는 수준)
+   - 폐용매 목록(wastePresets)도 같은 문서에 함께 저장되어, 한 사람이
+     "목록 관리"에서 추가/수정/삭제하고 저장하면 모두의 드롭다운에 반영됩니다.
+============================================================ */
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyBtf8lX15eLMRVKthHEzjl4pJKJTq5gVvk",
+  authDomain: "equipment-operation-log.firebaseapp.com",
+  projectId: "equipment-operation-log",
+  storageBucket: "equipment-operation-log.firebasestorage.app",
+  messagingSenderId: "695600318374",
+  appId: "1:695600318374:web:795fcf2a3f0179570cf167"
+};
+let firebaseDb = null;
+let useFirebase = false;
+let unsubscribeEntries = null;
+
+function tonbagDocRef(){
+  return firebaseDb.collection('tonbag').doc('entries');
+}
+function isFirebaseConfigured(){
+  return !!(FIREBASE_CONFIG && FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.projectId);
+}
+function withTimeout(promise, ms){
+  return Promise.race([
+    promise,
+    new Promise((_, reject)=> setTimeout(()=>reject(new Error('timeout')), ms))
+  ]);
+}
 async function initFirebaseBackend(){
-  if(!isFirebaseConfigured()||typeof firebase==='undefined'||!firebase.initializeApp)return false;
-  for(let attempt=1;attempt<=2;attempt++)try{if(!firebase.apps||!firebase.apps.length)firebase.initializeApp(FIREBASE_CONFIG);firebaseDb=firebase.firestore();await withTimeout(firebaseDb.collection('tonbag').doc('__ping_check_').get(),5000);return true}catch(e){console.error(`[톤백 관리대장] Firebase 연결 시도 ${attempt}번째 실패`,e);firebaseDb=null;if(attempt===2)return false}
+  if(!isFirebaseConfigured()) return false;
+  if(typeof firebase === 'undefined' || !firebase.initializeApp) return false;
+  for(let attempt=1; attempt<=2; attempt++){
+    try{
+      if(!firebase.apps || !firebase.apps.length){
+        firebase.initializeApp(FIREBASE_CONFIG);
+      }
+      firebaseDb = firebase.firestore();
+      // 연결 확인용 ping. Firestore는 앞뒤로 밑줄 두 개씩인 이름("__xxx__")을
+      // 예약어로 취급해 거부하므로, 끝을 밑줄 한 개로 맞춘 안전한 이름을 쓴다.
+      await withTimeout(firebaseDb.collection('tonbag').doc('__ping_check_').get(), 5000);
+      return true;
+    }catch(e){
+      console.error(`[톤백 관리대장] Firebase 연결 시도 ${attempt}번째 실패`, e);
+      firebaseDb = null;
+      if(attempt === 2) return false;
+    }
+  }
   return false;
 }
-function updateSyncBadge(){const badge=document.getElementById('syncBadge');if(!badge)return;if(useFirebase){badge.textContent='☁ 공유 저장소 연결됨 — 모든 기기/사용자에게 공유됩니다';badge.className='sync-badge connected'}else{badge.textContent='⚠ 단독 실행 — 이 브라우저에만 저장되어 공유되지 않습니다';badge.className='sync-badge local'}}
-function todayStr(){const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
-function escapeHtml(str){return String(str).replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]))}
-function sanitizeEntries(list){return(Array.isArray(list)?list:[]).filter(e=>e&&TYPE_LABELS[e.type]).map(e=>typeof e.memo==='string'?{...e,memo:applyLegacyWasteRenames(e.memo)}:e)}
-function sanitizeWastePresets(list){if(!Array.isArray(list))return DEFAULT_WASTE_PRESETS.slice();const cleaned=list.filter(v=>typeof v==='string'&&v.trim()).map(v=>applyLegacyWasteRenames(v.trim()));return [...new Set(cleaned)]}
-function hasLegacyPresetNames(list){return Array.isArray(list)&&list.some(v=>typeof v==='string'&&Object.prototype.hasOwnProperty.call(LEGACY_WASTE_RENAMES,v.trim()))}
-function hasLegacyEntryMemos(list){return Array.isArray(list)&&list.some(e=>e&&typeof e.memo==='string'&&Object.prototype.hasOwnProperty.call(LEGACY_WASTE_RENAMES,e.memo))}
-function sanitizeProductWasteMap(obj){if(!obj||typeof obj!=='object'||Array.isArray(obj))return{};const result={};Object.keys(obj).forEach(code=>{const c=String(code).trim(),rule=obj[code];if(!c||!rule||typeof rule!=='object')return;const clean={};Object.keys(rule).forEach(k=>{const day=Number(k),solvents=Array.isArray(rule[k])?rule[k].filter(v=>typeof v==='string'&&v.trim()).map(v=>applyLegacyWasteRenames(v.trim())):[];if(Number.isFinite(day)&&day>0&&solvents.length)clean[day]=solvents});if(Object.keys(clean).length)result[c]=clean});return result}
-function sanitizeCalendarConfig(obj){return{calendarId:obj&&typeof obj.calendarId==='string'?obj.calendarId.trim():'',apiKey:obj&&typeof obj.apiKey==='string'?obj.apiKey.trim():''}}
-function sanitizeDismissedMissing(raw){return new Set(Array.isArray(raw)?raw.filter(x=>typeof x==='string'):[])}
+function updateSyncBadge(){
+  const badge = document.getElementById('syncBadge');
+  if(!badge) return;
+  if(useFirebase){
+    badge.textContent = '☁ 공유 저장소 연결됨 — 모든 기기/사용자에게 공유됩니다';
+    badge.className = 'sync-badge connected';
+  } else {
+    badge.textContent = '⚠ 단독 실행 — 이 브라우저에만 저장되어 공유되지 않습니다';
+    badge.className = 'sync-badge local';
+  }
+}
+
+function todayStr(){
+  const d = new Date();
+  return d.toISOString().slice(0,10);
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+
+function sanitizeEntries(list){
+  return (Array.isArray(list) ? list : [])
+    .filter(e => e && TYPE_LABELS[e.type])
+    .map(e => (typeof e.memo === 'string' ? { ...e, memo: applyLegacyWasteRenames(e.memo) } : e));
+}
+
+function sanitizeWastePresets(list){
+  if(!Array.isArray(list)) return DEFAULT_WASTE_PRESETS.slice();
+  const cleaned = list.filter(v => typeof v === 'string' && v.trim()).map(v => applyLegacyWasteRenames(v.trim()));
+  // 이름 교정 과정에서 같은 이름이 중복될 수 있으므로, 먼저 나온 순서를 유지하며 제거한다.
+  const seen = new Set();
+  const deduped = [];
+  cleaned.forEach(v => { if(!seen.has(v)){ seen.add(v); deduped.push(v); } });
+  return deduped;
+}
+
+function hasLegacyPresetNames(list){
+  return Array.isArray(list) && list.some(v => typeof v === 'string' && Object.prototype.hasOwnProperty.call(LEGACY_WASTE_RENAMES, v.trim()));
+}
+function hasLegacyEntryMemos(list){
+  return Array.isArray(list) && list.some(e => e && typeof e.memo === 'string' && Object.prototype.hasOwnProperty.call(LEGACY_WASTE_RENAMES, e.memo));
+}
+
+// productWasteMap: { 품목코드: { 일차(숫자): [폐용매, ...] } } 형태만 남기고 나머지는 버린다.
+// (빈 객체 {}는 "품목을 모두 지운 상태"일 수 있으므로 그대로 두고, 기본값으로 되돌리지 않는다 —
+//  기본값 사용 여부는 호출하는 쪽에서 "저장된 값이 아예 없었는지"를 보고 결정한다.)
+function sanitizeProductWasteMap(obj){
+  if(!obj || typeof obj !== 'object' || Array.isArray(obj)) return {};
+  const result = {};
+  Object.keys(obj).forEach(code=>{
+    const trimmedCode = String(code).trim();
+    if(!trimmedCode) return;
+    const rule = obj[code];
+    if(!rule || typeof rule !== 'object') return;
+    const cleanRule = {};
+    Object.keys(rule).forEach(dayKey=>{
+      const day = Number(dayKey);
+      if(!Number.isFinite(day) || day <= 0) return;
+      const solvents = Array.isArray(rule[dayKey])
+        ? rule[dayKey].filter(v => typeof v === 'string' && v.trim()).map(v => applyLegacyWasteRenames(v.trim()))
+        : [];
+      if(solvents.length) cleanRule[day] = solvents;
+    });
+    if(Object.keys(cleanRule).length) result[trimmedCode] = cleanRule;
+  });
+  return result;
+}
+
+function sanitizeCalendarConfig(obj){
+  const calendarId = obj && typeof obj.calendarId === 'string' ? obj.calendarId.trim() : '';
+  const apiKey = obj && typeof obj.apiKey === 'string' ? obj.apiKey.trim() : '';
+  return { calendarId, apiKey };
+}
+
+// "폐액 미기입" 체크(확인 완료 처리) 목록을 저장소에서 불러올 때, 배열이 아니거나
+// 문자열이 아닌 값이 섞여 있어도 안전하게 Set으로 만들어준다.
+function sanitizeDismissedMissing(raw){
+  return new Set(Array.isArray(raw) ? raw.filter(x => typeof x === 'string') : []);
+}
+
 async function loadEntries(){
+  // Firebase 모드에서는 subscribeEntries()의 실시간 구독이 entries/wastePresets를
+  // 채우고 render()도 그쪽에서 호출하므로, 이 함수는 로컬(localStorage) 모드에서만 쓰인다.
   try{
-    const raw=localStorage.getItem(STORAGE_KEY),rawEntriesList=raw?JSON.parse(raw):[];entries=sanitizeEntries(rawEntriesList);
-    const rp=localStorage.getItem(PRESETS_STORAGE_KEY),rawPresetsList=rp?JSON.parse(rp):null;wastePresets=rawPresetsList?sanitizeWastePresets(rawPresetsList):DEFAULT_WASTE_PRESETS.slice();
-    const rm=localStorage.getItem(PRODUCT_MAP_STORAGE_KEY),rawProductMapObj=rm?JSON.parse(rm):null;productWasteMap=rawProductMapObj?sanitizeProductWasteMap(rawProductMapObj):cloneProductWasteMap(DEFAULT_PRODUCT_WASTE_MAP);
-    const rc=localStorage.getItem(CALENDAR_CONFIG_STORAGE_KEY);calendarConfig=rc?sanitizeCalendarConfig(JSON.parse(rc)):{calendarId:'',apiKey:''};
-    const rd=localStorage.getItem(DISMISSED_MISSING_STORAGE_KEY);dismissedMissingKeys=sanitizeDismissedMissing(rd?JSON.parse(rd):null);
-    if(hasLegacyPresetNames(rawPresetsList)||hasLegacyEntryMemos(rawEntriesList))await saveEntries();
-  }catch(e){entries=[];wastePresets=DEFAULT_WASTE_PRESETS.slice();productWasteMap=cloneProductWasteMap(DEFAULT_PRODUCT_WASTE_MAP);calendarConfig={calendarId:'',apiKey:''};dismissedMissingKeys=new Set()}
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const rawEntriesList = raw ? JSON.parse(raw) : [];
+    entries = sanitizeEntries(rawEntriesList);
+    const rawPresets = localStorage.getItem(PRESETS_STORAGE_KEY);
+    const rawPresetsList = rawPresets ? JSON.parse(rawPresets) : null;
+    wastePresets = rawPresetsList ? sanitizeWastePresets(rawPresetsList) : DEFAULT_WASTE_PRESETS.slice();
+    const rawProductMap = localStorage.getItem(PRODUCT_MAP_STORAGE_KEY);
+    const rawProductMapObj = rawProductMap ? JSON.parse(rawProductMap) : null;
+    productWasteMap = rawProductMapObj ? sanitizeProductWasteMap(rawProductMapObj) : cloneProductWasteMap(DEFAULT_PRODUCT_WASTE_MAP);
+    const rawCalConfig = localStorage.getItem(CALENDAR_CONFIG_STORAGE_KEY);
+    calendarConfig = rawCalConfig ? sanitizeCalendarConfig(JSON.parse(rawCalConfig)) : { calendarId: '', apiKey: '' };
+    const rawDismissed = localStorage.getItem(DISMISSED_MISSING_STORAGE_KEY);
+    dismissedMissingKeys = sanitizeDismissedMissing(rawDismissed ? JSON.parse(rawDismissed) : null);
+    if(hasLegacyPresetNames(rawPresetsList) || hasLegacyEntryMemos(rawEntriesList)){
+      // 예전 폐용매 이름("EtOH+EA" 등)이 저장되어 있던 경우, 새 이름으로 교정한 내용을
+      // 사용자 조작 없이 조용히 다시 저장해서 다음에도 새 이름으로 남도록 한다.
+      saveEntries();
+    }
+  }catch(e){
+    entries = [];
+    wastePresets = DEFAULT_WASTE_PRESETS.slice();
+    productWasteMap = cloneProductWasteMap(DEFAULT_PRODUCT_WASTE_MAP);
+    calendarConfig = { calendarId: '', apiKey: '' };
+    dismissedMissingKeys = new Set();
+  }
   render();
 }
+
 function subscribeEntries(){
-  if(unsubscribeEntries)unsubscribeEntries();
-  unsubscribeEntries=tonbagDocRef().onSnapshot(snap=>{
-    if(isDirty)return;const data=snap.exists?snap.data():null,rawEntriesList=data&&data.entries,presetsFromDb=data&&data.wastePresets,productMapFromDb=data&&data.productWasteMap,calendarConfigFromDb=data&&data.calendarConfig,dismissedFromDb=data&&data.dismissedMissingKeys;
-    entries=sanitizeEntries(rawEntriesList);wastePresets=Array.isArray(presetsFromDb)?sanitizeWastePresets(presetsFromDb):DEFAULT_WASTE_PRESETS.slice();productWasteMap=productMapFromDb?sanitizeProductWasteMap(productMapFromDb):cloneProductWasteMap(DEFAULT_PRODUCT_WASTE_MAP);calendarConfig=calendarConfigFromDb?sanitizeCalendarConfig(calendarConfigFromDb):{calendarId:'',apiKey:''};dismissedMissingKeys=sanitizeDismissedMissing(dismissedFromDb);render();
-    if(hasLegacyPresetNames(presetsFromDb)||hasLegacyEntryMemos(rawEntriesList))saveEntries();
-  },err=>{console.error('[톤백 관리대장] 실시간 동기화 오류',err);document.getElementById('formHint').textContent='공유 저장소와 연결이 끊겼습니다. 새로고침해주세요.'});
+  if(unsubscribeEntries) unsubscribeEntries();
+  unsubscribeEntries = tonbagDocRef().onSnapshot(
+    snap => {
+      if(isDirty){
+        // "저장" 버튼을 누르기 전까지 저장되지 않은 내 변경사항이 있는 동안에는,
+        // 다른 사람이 그 사이에 저장한 내용으로 화면을 덮어써서 내 변경사항이
+        // 사라지지 않도록 잠시 반영을 미룬다. 저장 버튼을 누르면(그 순간 isDirty가
+        // false가 됨) 그 다음 스냅샷부터 다시 정상적으로 반영된다.
+        return;
+      }
+      const data = snap.exists ? snap.data() : null;
+      const rawEntriesList = data && data.entries;
+      const presetsFromDb = data && data.wastePresets;
+      const productMapFromDb = data && data.productWasteMap;
+      const calendarConfigFromDb = data && data.calendarConfig;
+      const dismissedFromDb = data && data.dismissedMissingKeys;
+      entries = sanitizeEntries(rawEntriesList);
+      wastePresets = Array.isArray(presetsFromDb) ? sanitizeWastePresets(presetsFromDb) : DEFAULT_WASTE_PRESETS.slice();
+      productWasteMap = productMapFromDb ? sanitizeProductWasteMap(productMapFromDb) : cloneProductWasteMap(DEFAULT_PRODUCT_WASTE_MAP);
+      calendarConfig = calendarConfigFromDb ? sanitizeCalendarConfig(calendarConfigFromDb) : { calendarId: '', apiKey: '' };
+      dismissedMissingKeys = sanitizeDismissedMissing(dismissedFromDb);
+      render();
+      if(hasLegacyPresetNames(presetsFromDb) || hasLegacyEntryMemos(rawEntriesList)){
+        // 공유 저장소에 예전 폐용매 이름("EtOH+EA" 등)이 남아있던 경우, 새 이름으로
+        // 교정한 내용을 조용히 다시 저장해서 모두의 화면에 새 이름이 반영되게 한다.
+        saveEntries();
+      }
+    },
+    err => {
+      console.error('[톤백 관리대장] 실시간 동기화 오류', err);
+      document.getElementById('formHint').textContent = '공유 저장소와 연결이 끊겼습니다. 새로고침해주세요.';
+    }
+  );
 }
+
 async function saveEntries(){
-  if(useFirebase&&firebaseDb){try{await tonbagDocRef().set({entries,wastePresets,productWasteMap,calendarConfig,dismissedMissingKeys:Array.from(dismissedMissingKeys),updatedAt:Date.now()});return}catch(e){console.error('[톤백 관리대장] 공유 저장소 저장 실패',e);document.getElementById('formHint').textContent='공유 저장소 저장에 실패했습니다. 인터넷 연결을 확인해주세요.';return}}
-  try{localStorage.setItem(STORAGE_KEY,JSON.stringify(entries));localStorage.setItem(PRESETS_STORAGE_KEY,JSON.stringify(wastePresets));localStorage.setItem(PRODUCT_MAP_STORAGE_KEY,JSON.stringify(productWasteMap));localStorage.setItem(CALENDAR_CONFIG_STORAGE_KEY,JSON.stringify(calendarConfig));localStorage.setItem(DISMISSED_MISSING_STORAGE_KEY,JSON.stringify(Array.from(dismissedMissingKeys)))}catch(e){document.getElementById('formHint').textContent='저장 중 오류가 발생했습니다. (브라우저 저장공간이 가득 찼거나 시크릿 모드일 수 있어요)'}
+  if(useFirebase && firebaseDb){
+    try{
+      await tonbagDocRef().set({ entries, wastePresets, productWasteMap, calendarConfig, dismissedMissingKeys: Array.from(dismissedMissingKeys), updatedAt: Date.now() });
+      // 화면 갱신은 subscribeEntries()의 onSnapshot이 처리한다
+      // (다른 사람이 등록한 내용도 똑같은 방식으로 실시간 반영됨)
+      return;
+    }catch(e){
+      console.error('[톤백 관리대장] 공유 저장소 저장 실패', e);
+      document.getElementById('formHint').textContent = '공유 저장소 저장에 실패했습니다. 인터넷 연결을 확인해주세요.';
+      return;
+    }
+  }
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+    localStorage.setItem(PRESETS_STORAGE_KEY, JSON.stringify(wastePresets));
+    localStorage.setItem(PRODUCT_MAP_STORAGE_KEY, JSON.stringify(productWasteMap));
+    localStorage.setItem(CALENDAR_CONFIG_STORAGE_KEY, JSON.stringify(calendarConfig));
+    localStorage.setItem(DISMISSED_MISSING_STORAGE_KEY, JSON.stringify(Array.from(dismissedMissingKeys)));
+  }catch(e){
+    document.getElementById('formHint').textContent = '저장 중 오류가 발생했습니다. (브라우저 저장공간이 가득 찼거나 시크릿 모드일 수 있어요)';
+  }
 }
-function toggleMissingDismissed(key){dismissedMissingKeys.add(key);persistDismissedMissing();renderCalendarAlerts()}
-async function persistDismissedMissing(){if(useFirebase&&firebaseDb){try{await tonbagDocRef().set({dismissedMissingKeys:Array.from(dismissedMissingKeys)},{merge:true})}catch(e){console.error('[톤백 관리대장] 미기입 체크 저장 실패',e)}return}try{localStorage.setItem(DISMISSED_MISSING_STORAGE_KEY,JSON.stringify(Array.from(dismissedMissingKeys)))}catch(e){}}
-function updateSaveButtonUI(){const btn=document.getElementById('saveBtn');if(!btn)return;clearTimeout(saveClickTimer);btn.classList.remove('done');if(isDirty){btn.classList.add('dirty');btn.textContent='💾 저장 필요'}else{btn.classList.remove('dirty');btn.textContent='💾 저장'}}
-function markDirty(){isDirty=true;updateSaveButtonUI()}
-window.addEventListener('beforeunload',e=>{if(isDirty){e.preventDefault();e.returnValue=''}});
 
-/* Calendar utilities and Google Calendar integration */
-function dateOnly(input){const d=new Date(input);d.setHours(0,0,0,0);return d}
-function formatDateLabel(d){return `${d.getMonth()+1}/${d.getDate()}`}
-const WEEKDAY_KO=['일','월','화','수','목','금','토'];
-function startOfMonth(d){const nd=dateOnly(d);nd.setDate(1);return nd}
-function addMonths(d,delta){const nd=dateOnly(d);nd.setMonth(nd.getMonth()+delta);return nd}
-function startOfGridForMonth(monthDate){const first=startOfMonth(monthDate),gridStart=new Date(first);gridStart.setDate(gridStart.getDate()-first.getDay());return gridStart}
-function endOfGridForMonth(monthDate){const first=startOfMonth(monthDate),lastDay=new Date(addMonths(first,1));lastDay.setDate(lastDay.getDate()-1);const gridEnd=new Date(lastDay);gridEnd.setDate(gridEnd.getDate()+(6-lastDay.getDay()));return gridEnd}
-function eachDateInRange(start,end){const arr=[];let d=new Date(start);while(d<=end){arr.push(new Date(d));d=new Date(d);d.setDate(d.getDate()+1)}return arr}
-function findProductCode(title){const upper=String(title||'').toUpperCase();let best=null;Object.keys(productWasteMap).forEach(code=>{if(upper.indexOf(code.toUpperCase())!==-1&&(!best||code.length>best.length))best=code});return best}
-function parseEventDateRange(ev){if(!ev)return null;if(ev.start&&ev.start.date&&ev.end&&ev.end.date)return{start:new Date(ev.start.date+'T00:00:00'),end:new Date(ev.end.date+'T00:00:00')};if(ev.start&&ev.start.dateTime){const s=dateOnly(ev.start.dateTime),e=new Date(s);e.setDate(e.getDate()+1);return{start:s,end:e}}return null}
-function batchKeyForTitle(title){const m=String(title||'').trim().match(/^\S+/);return m?m[0]:null}
-function collectBatchDates(batchKey,allEvents){const dateSet=new Set();allEvents.forEach(ev=>{if(batchKeyForTitle(ev.summary||'')!==batchKey)return;const range=parseEventDateRange(ev);if(!range)return;let d=new Date(range.start);while(d<range.end){dateSet.add(d.getTime());d=new Date(d);d.setDate(d.getDate()+1)}});return Array.from(dateSet).sort((a,b)=>a-b)}
-function isRefiningTitle(title){return String(title||'').indexOf('정제')!==-1}
-function matchEventsForDate(targetDate){const target=dateOnly(targetDate),results=[];calendarEvents.forEach(ev=>{const title=ev.summary||'(제목 없음)',code=findProductCode(title);if(!code||!isRefiningTitle(title))return;const range=parseEventDateRange(ev);if(!range||target<range.start||target>=range.end)return;const batchKey=batchKeyForTitle(title)||code,batchDates=collectBatchDates(batchKey,calendarEvents),totalDays=Math.max(1,batchDates.length),idx=batchDates.indexOf(target.getTime()),dayIndex=idx===-1?1:idx+1,rule=productWasteMap[code]||{},solvents=rule[dayIndex]||rule[String(dayIndex)]||null;results.push({title,code,dayIndex,totalDays,solvents})});return results}
-function findAvailableHalfEntries(solvent){return solvent?entries.filter(e=>e&&e.type==='half'&&e.memo===solvent):[]}
-function tonbagAvailabilityBadgeHtml(solvent){const list=findAvailableHalfEntries(solvent);if(!list.length)return'';const byCapacity=new Map();list.forEach(e=>{const cap=(e.capacity!=null&&e.capacity!=='')?`${e.capacity}L`:'용량미정';byCapacity.set(cap,(byCapacity.get(cap)||0)+(Number(e.qty)||0))});const label=Array.from(byCapacity.entries()).map(([cap,qty])=>qty>1?`${cap}×${qty}`:cap).join('+');return `<span class="alert-tonbag-badge available">${escapeHtml(label)}</span>`}
-function ymd(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`}
-function hasEntryForDateSolvent(dateObj,solvent){if(!solvent)return true;const key=ymd(dateObj);return entries.some(e=>{if(!e||(e.type!=='full'&&e.type!=='half'))return false;if(e.date===key&&e.memo===solvent)return true;return e.type==='half'&&e.memo===solvent&&!!e.capChangedDate&&e.capChangedDate>=key&&!pendingCapEntryIds.has(e.id)})}
-function collectMissingWasteEntries(days){const today=dateOnly(new Date()),missing=[];days.forEach(d=>{const dOnly=dateOnly(d);if(dOnly>today)return;matchEventsForDate(dOnly).forEach(m=>{if(!m.solvents||!m.solvents.length)return;m.solvents.forEach(s=>{if(!hasEntryForDateSolvent(dOnly,s))missing.push({date:dOnly,code:m.code,solvent:s})})})});return missing}
-function updateCalendarStatusText(){const el=document.getElementById('calendarStatusText');if(!el)return;if(calendarFetchState==='loading'){el.textContent='불러오는 중…';return}if(calendarFetchState==='error'){el.textContent='⚠ 불러오기 실패';return}if(calendarLastCheckedAt){const t=new Date(calendarLastCheckedAt);el.textContent=`마지막 확인: ${String(t.getHours()).padStart(2,'0')}:${String(t.getMinutes()).padStart(2,'0')}`}else el.textContent=''}
-function getCalendarViewDays(){const monthDate=calendarViewMonth||startOfMonth(dateOnly(new Date()));return eachDateInRange(startOfGridForMonth(monthDate),endOfGridForMonth(monthDate))}
+// "폐액 미기입" 배너의 체크박스를 눌렀을 때: 그 항목을 확인 완료 처리해서
+// 목록에서 즉시 사라지게 하고, 다른 미저장 변경사항("저장" 버튼을 아직 안 누른 것)에
+// 영향을 주지 않도록 saveEntries()의 dirty 흐름과는 별도로 이 값만 바로 저장한다.
+function toggleMissingDismissed(key){
+  dismissedMissingKeys.add(key);
+  persistDismissedMissing();
+  renderCalendarAlerts();
+}
+
+async function persistDismissedMissing(){
+  if(useFirebase && firebaseDb){
+    try{
+      await tonbagDocRef().set({ dismissedMissingKeys: Array.from(dismissedMissingKeys) }, { merge: true });
+    }catch(e){
+      console.error('[톤백 관리대장] 미기입 체크 저장 실패', e);
+    }
+    return;
+  }
+  try{
+    localStorage.setItem(DISMISSED_MISSING_STORAGE_KEY, JSON.stringify(Array.from(dismissedMissingKeys)));
+  }catch(e){
+    // 로컬 저장 실패는 조용히 무시 — 체크 표시 자체는 화면에서 이미 반영됨
+  }
+}
+
+// "저장" 버튼을 눌러야만 실제로 저장되도록 바뀌면서, 등록/수정/삭제(폐용매 목록 변경 포함)는
+// 화면(메모리)에서만 바뀌고 바로 저장되지 않는다. 저장 전 상태를 버튼 색/문구로 계속 보여준다.
+let saveClickTimer = null;
+function updateSaveButtonUI(){
+  const btn = document.getElementById('saveBtn');
+  if(!btn) return;
+  clearTimeout(saveClickTimer);
+  btn.classList.remove('done');
+  if(isDirty){
+    btn.classList.add('dirty');
+    btn.textContent = '💾 저장 필요';
+  } else {
+    btn.classList.remove('dirty');
+    btn.textContent = '💾 저장';
+  }
+}
+
+function markDirty(){
+  isDirty = true;
+  updateSaveButtonUI();
+}
+
+window.addEventListener('beforeunload', (e)=>{
+  if(isDirty){
+    e.preventDefault();
+    e.returnValue = '';
+  }
+});
+
+/* ============================================================
+   생산일정 캘린더 연동 — 불러오기 & 매칭
+   - 구글 캘린더 REST API를 브라우저에서 바로 호출한다(별도 서버 없이).
+     이 방식은 대상 캘린더가 "공개"로 설정되어 있어야 하고, API 키만으로
+     접근 가능해야 한다(로그인/OAuth 불필요, 읽기 전용).
+   - 이벤트 제목에 productWasteMap의 품목 코드가 들어있으면 그 품목으로
+     인식한다(제목 형식이 정확히 일치하지 않아도 되도록 "포함" 여부로 판단).
+   - "며칠째"인지는 이벤트 하나의 날짜 범위만으로 계산하지 않는다. 실제
+     회사 캘린더는 "G0720RE-260801 1차정제"(8/31), "G0720RE-260801
+     2차정제"(9/1), "G0720RE-260801 건조"(9/2)처럼 배치(로트) 코드가 같은
+     하루짜리 이벤트가 날짜별로 따로따로 등록되는 방식이라, 이벤트 하나의
+     start~end만 봐서는 항상 "1일차/1일"이 되어버린다. 그래서 제목의 첫
+     단어(배치 코드, 예: "G0720RE-260801")가 같은 이벤트들을 전부 모아
+     날짜순으로 정렬한 뒤, 그 안에서 대상 날짜가 몇 번째인지로 "며칠째"를
+     계산한다. (이렇게 하면 여러 날짜에 걸친 이벤트 하나로 등록된 경우도
+     동일한 방식으로 정상 계산된다 — 그 이벤트가 차지하는 날짜들이 전부
+     같은 배치 코드로 묶이기 때문.)
+============================================================ */
+function dateOnly(input){
+  const d = new Date(input);
+  d.setHours(0,0,0,0);
+  return d;
+}
+
+function formatDateLabel(d){
+  return `${d.getMonth()+1}/${d.getDate()}`;
+}
+
+const WEEKDAY_KO = ['일','월','화','수','목','금','토'];
+
+// 해당 날짜가 속한 달의 1일(00:00)을 돌려준다.
+function startOfMonth(d){
+  const nd = dateOnly(d);
+  nd.setDate(1);
+  return nd;
+}
+
+// 몇 달 뒤/전의 날짜를 돌려준다(day는 유지하지 않고 항상 1일 기준으로 다룸).
+function addMonths(d, delta){
+  const nd = dateOnly(d);
+  nd.setMonth(nd.getMonth() + delta);
+  return nd;
+}
+
+// monthDate가 속한 달을 "일요일 시작"의 완전한 주(週) 단위 달력 그리드로 보여주기
+// 위해, 그리드가 시작하는 날짜(그 달 1일이 속한 주의 일요일)를 계산한다.
+function startOfGridForMonth(monthDate){
+  const first = startOfMonth(monthDate);
+  const gridStart = new Date(first);
+  gridStart.setDate(gridStart.getDate() - first.getDay());
+  return gridStart;
+}
+
+// monthDate가 속한 달의 그리드가 끝나는 날짜(그 달 마지막날이 속한 주의 토요일)를 계산한다.
+function endOfGridForMonth(monthDate){
+  const first = startOfMonth(monthDate);
+  const lastDay = new Date(addMonths(first, 1));
+  lastDay.setDate(lastDay.getDate() - 1); // 그 달의 마지막날
+  const gridEnd = new Date(lastDay);
+  gridEnd.setDate(gridEnd.getDate() + (6 - lastDay.getDay()));
+  return gridEnd;
+}
+
+// start부터 end까지(양 끝 포함) 날짜 배열을 만든다.
+function eachDateInRange(start, end){
+  const arr = [];
+  let d = new Date(start);
+  while(d <= end){
+    arr.push(new Date(d));
+    d = new Date(d);
+    d.setDate(d.getDate() + 1);
+  }
+  return arr;
+}
+
+// 이벤트 제목 안에 포함된 품목 코드를 찾는다. 여러 코드가 동시에 포함되어 있으면
+// (예: "O07"이 "O0711"의 일부인 경우처럼) 더 긴 코드를 우선한다.
+function findProductCode(title){
+  const upper = String(title || '').toUpperCase();
+  let best = null;
+  Object.keys(productWasteMap).forEach(code=>{
+    if(upper.indexOf(code.toUpperCase()) !== -1){
+      if(!best || code.length > best.length) best = code;
+    }
+  });
+  return best;
+}
+
+// 이벤트의 날짜 범위를 {start, end} (end는 그 다음날, exclusive)로 계산한다.
+// 종일 이벤트든 시간이 있는 이벤트든 모두 "날짜" 단위로만 비교한다.
+function parseEventDateRange(ev){
+  if(!ev) return null;
+  if(ev.start && ev.start.date && ev.end && ev.end.date){
+    const s = new Date(ev.start.date + 'T00:00:00');
+    const e = new Date(ev.end.date + 'T00:00:00');
+    return { start: s, end: e };
+  }
+  if(ev.start && ev.start.dateTime){
+    const s = dateOnly(ev.start.dateTime);
+    const e = new Date(s); e.setDate(e.getDate()+1);
+    return { start: s, end: e };
+  }
+  return null;
+}
+
+// 이벤트 제목의 첫 단어를 "배치(로트) 코드"로 사용한다.
+// 예: "G0720RE-260801 1차정제" -> "G0720RE-260801"
+// 이 값이 같은 이벤트들을 같은 생산 배치로 취급해서 "며칠째"를 센다.
+function batchKeyForTitle(title){
+  const t = String(title || '').trim();
+  const m = t.match(/^\S+/);
+  return m ? m[0] : null;
+}
+
+// batchKey가 같은 모든 이벤트가 차지하는 날짜를 전부 모아 중복 없이
+// 오름차순으로 정렬한 배열을 돌려준다. (하루짜리 이벤트가 날짜별로 따로
+// 등록된 경우든, 한 이벤트가 여러 날짜에 걸쳐 등록된 경우든 모두 지원)
+function collectBatchDates(batchKey, allEvents){
+  const dateSet = new Set();
+  allEvents.forEach(ev=>{
+    if(batchKeyForTitle(ev.summary || '') !== batchKey) return;
+    const range = parseEventDateRange(ev);
+    if(!range) return;
+    let d = new Date(range.start);
+    while(d < range.end){
+      dateSet.add(d.getTime());
+      d = new Date(d);
+      d.setDate(d.getDate() + 1);
+    }
+  });
+  return Array.from(dateSet).sort((a, b) => a - b);
+}
+
+// 지정한 날짜(targetDate)에 해당하는 생산 이벤트들을 찾아서, 품목 코드/며칠째인지/
+// 예상 폐용매를 계산해 배열로 돌려준다.
+// 캘린더에 "품목코드 + 정제"라고 적힌 이벤트만 카드로 보여주기 위한 필터.
+// (예: "G0720RE-260801 1차정제"는 보여주고, 같은 배치의 "건조"/"라벨링"/
+// "포장" 같은 다른 공정 이벤트는 화면에 카드로 띄우지 않는다. 단, "며칠째"
+// 계산(collectBatchDates)은 이 필터와 무관하게 같은 배치의 모든 이벤트 —
+// 정제가 아닌 공정도 포함 — 를 그대로 사용해야 정확하므로 이 필터는 오직
+// "이 이벤트를 카드로 표시할지"에만 적용한다.)
+function isRefiningTitle(title){
+  return String(title || '').indexOf('정제') !== -1;
+}
+
+function matchEventsForDate(targetDate){
+  const target = dateOnly(targetDate);
+  const results = [];
+  calendarEvents.forEach(ev=>{
+    const title = ev.summary || '(제목 없음)';
+    const code = findProductCode(title);
+    if(!code) return;
+    if(!isRefiningTitle(title)) return;
+    const range = parseEventDateRange(ev);
+    if(!range) return;
+    if(target < range.start || target >= range.end) return;
+    const batchKey = batchKeyForTitle(title) || code;
+    const batchDates = collectBatchDates(batchKey, calendarEvents);
+    const totalDays = Math.max(1, batchDates.length);
+    const idx = batchDates.indexOf(target.getTime());
+    const dayIndex = idx === -1 ? 1 : idx + 1;
+    const rule = productWasteMap[code] || {};
+    const solvents = rule[dayIndex] || rule[String(dayIndex)] || null;
+    results.push({ title, code, dayIndex, totalDays, solvents });
+  });
+  return results;
+}
+
+// 특정 폐용매에 대해, 현재 "사용"(half) 상태로 입고되어 있는 톤백(입고내역)을 찾는다.
+// entries의 memo는 불러올 때 이미 applyLegacyWasteRenames로 정규화되어 있으므로
+// solvent 값과 바로 비교할 수 있다.
+function findAvailableHalfEntries(solvent){
+  if(!solvent) return [];
+  return entries.filter(e => e && e.type === 'half' && e.memo === solvent);
+}
+
+// 캘린더에 표시할, 특정 폐용매의 "사용 가능한 톤백" 배지 HTML을 만든다.
+// - 예전에는 "사용 가능 톤백 1개"/"사용 톤백 없음"처럼 개수만 문장으로 보여줬는데,
+//   지금은 실제로 몇 리터짜리가 남아있는지 바로 알 수 있도록 용량(L)을 짧게 보여준다.
+// - 같은 용매로 용량이 다른 톤백이 여러 개 남아있으면 "500L+100L"처럼 이어붙이고,
+//   같은 용량이 여러 개면 "500L×2"처럼 개수를 곱해서 보여준다.
+// - 사용 가능한 톤백이 하나도 없으면 아무것도 표시하지 않는다(배지 자체를 생략).
+function tonbagAvailabilityBadgeHtml(solvent){
+  const list = findAvailableHalfEntries(solvent);
+  if(list.length === 0){
+    return '';
+  }
+  // 용량별로 묶어서 수량을 합산한다 (용량이 없는 예전 데이터는 "용량미정"으로 표시).
+  const byCapacity = new Map();
+  list.forEach(e=>{
+    const capLabel = (e.capacity != null && e.capacity !== '') ? `${e.capacity}L` : '용량미정';
+    byCapacity.set(capLabel, (byCapacity.get(capLabel) || 0) + (Number(e.qty) || 0));
+  });
+  const label = Array.from(byCapacity.entries())
+    .map(([capLabel, qty]) => qty > 1 ? `${capLabel}×${qty}` : capLabel)
+    .join('+');
+  return `<span class="alert-tonbag-badge available">${escapeHtml(label)}</span>`;
+}
+
+// 날짜를 입고 등록 폼(input type="date")과 같은 "YYYY-MM-DD" 형식(현지 시각 기준)
+// 문자열로 바꾼다. toISOString()은 UTC로 변환되어 자정 근처에 날짜가 하루
+// 어긋날 수 있으므로 쓰지 않는다.
+function ymd(d){
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return `${y}-${m}-${day}`;
+}
+
+// 특정 날짜에 특정 폐용매로 실제 입고(Full/사용) 등록이 되어 있는지 확인한다.
+// 캘린더 예측(matchEventsForDate)과 실제 입고내역(entries)을 대조해서,
+// "폐액이 발생했어야 하는데 아직 기입을 안 한" 날짜를 찾는 데 쓴다.
+function hasEntryForDateSolvent(dateObj, solvent){
+  if(!solvent) return true;
+  const key = ymd(dateObj);
+  return entries.some(e => {
+    if(!e || (e.type !== 'full' && e.type !== 'half')) return false;
+    if(e.date === key && e.memo === solvent) return true;
+    // 입고내역에서 같은 폐용매 "사용" 톤백의 용량(L)을 바꿨다면, 그 폐액을 넣은 것으로 보고
+    // 용량을 바꾼 날짜(포함) 이전에 예측된 미기입은 기입된 것으로 처리한다.
+    return e.type === 'half' && e.memo === solvent && !!e.capChangedDate && e.capChangedDate >= key && !pendingCapEntryIds.has(e.id);
+  });
+}
+
+// 달력 그리드에 표시 중인 날짜들(days) 중, 오늘 이전(또는 오늘)이면서 폐용매
+// 발생이 예측되었는데 아직 입고내역에 기입되지 않은 항목을 전부 모은다.
+// 아직 오지 않은 미래 날짜는 "아직 발생하지 않았을 뿐"이므로 대상에서 제외한다.
+function collectMissingWasteEntries(days){
+  const today = dateOnly(new Date());
+  const missing = [];
+  days.forEach(d=>{
+    const dOnly = dateOnly(d);
+    if(dOnly > today) return;
+    matchEventsForDate(dOnly).forEach(m=>{
+      if(!m.solvents || !m.solvents.length) return;
+      m.solvents.forEach(s=>{
+        if(!hasEntryForDateSolvent(dOnly, s)){
+          missing.push({ date: dOnly, code: m.code, solvent: s });
+        }
+      });
+    });
+  });
+  return missing;
+}
+
+function updateCalendarStatusText(){
+  const el = document.getElementById('calendarStatusText');
+  if(!el) return;
+  if(calendarFetchState === 'loading'){ el.textContent = '불러오는 중…'; return; }
+  if(calendarFetchState === 'error'){ el.textContent = '⚠ 불러오기 실패'; return; }
+  if(calendarLastCheckedAt){
+    const t = new Date(calendarLastCheckedAt);
+    const hh = String(t.getHours()).padStart(2,'0');
+    const mm = String(t.getMinutes()).padStart(2,'0');
+    el.textContent = `마지막 확인: ${hh}:${mm}`;
+  } else {
+    el.textContent = '';
+  }
+}
+
+function getCalendarViewDays(){
+  const monthDate = calendarViewMonth || startOfMonth(dateOnly(new Date()));
+  return eachDateInRange(startOfGridForMonth(monthDate), endOfGridForMonth(monthDate));
+}
+
 function renderCalendarAlerts(){
-  const body=document.getElementById('calendarAlertsBody');if(!body)return;
-  if(!calendarConfig.calendarId||!calendarConfig.apiKey){body.innerHTML='<div class="alert-empty">캘린더 ID와 API 키를 설정하면 이번 달 생산 일정에 따른 예상 폐용매를 캘린더로 보여드립니다. 위 "⚙ 캘린더 연동 설정"에서 입력해주세요.</div>';return}
-  const today=dateOnly(new Date()),monthDate=calendarViewMonth||startOfMonth(today),monthLabel=`${monthDate.getFullYear()}년 ${monthDate.getMonth()+1}월`;
-  const navHtml=`<div class="cal-month-header"><button type="button" class="cal-month-nav-btn" onclick="changeCalendarMonth(-1)">◀</button><div class="cal-month-title">${monthLabel}</div><button type="button" class="cal-month-nav-btn" onclick="changeCalendarMonth(1)">▶</button><button type="button" class="cal-month-today-btn" onclick="goToCurrentCalendarMonth()">오늘</button></div>`;
-  if(calendarFetchState==='loading'&&calendarEvents.length===0){body.innerHTML=navHtml+'<div class="alert-empty">캘린더를 불러오는 중…</div>';return}
-  if(calendarFetchState==='error'){body.innerHTML=navHtml+`<div class="alert-error">${escapeHtml(calendarFetchError||'캘린더를 불러오지 못했습니다.')}</div>`;return}
-  const gridStart=startOfGridForMonth(monthDate),gridEnd=endOfGridForMonth(monthDate),days=eachDateInRange(gridStart,gridEnd),nextMonth=addMonths(monthDate,1);
-  const weekdayHtml=WEEKDAY_KO.map((w,i)=>`<div class="cal-weekday${i===0?' sun':''}">${w}</div>`).join('');
-  const missingList=collectMissingWasteEntries(days),missingKey=(d,code,solvent)=>`${ymd(d)}|${code}|${solvent}`,missingSet=new Set(missingList.map(x=>missingKey(x.date,x.code,x.solvent))),visibleMissingList=missingList.filter(x=>!dismissedMissingKeys.has(missingKey(x.date,x.code,x.solvent)));
-  const missingBannerHtml=visibleMissingList.length?`<div class="alert-missing-banner">⚠ 폐액 미기입 ${visibleMissingList.length}건 — 입고등록을 했으면 체크하세요: ${visibleMissingList.map(x=>{const key=missingKey(x.date,x.code,x.solvent);return `<label class="alert-missing-item"><input type="checkbox" class="alert-missing-checkbox" onchange="toggleMissingDismissed('${escapeHtml(key)}')"><span>${formatDateLabel(x.date)} ${escapeHtml(x.code)}(${escapeHtml(x.solvent)})</span></label>`}).join(' ')}</div>`:'';
-  const totalMatchedCards=days.reduce((sum,d)=>sum+matchEventsForDate(d).length,0);let diagHtml='';
-  if(calendarEvents.length===0)diagHtml=`<div class="alert-diag">ℹ 캘린더 연동은 정상 작동했지만 ${formatDateLabel(gridStart)}~${formatDateLabel(gridEnd)} 기간에 구글 캘린더에서 조회된 일정이 0건입니다. 실제 일정과 캘린더 공개 설정을 확인해주세요.</div>`;
-  else if(totalMatchedCards===0){const samples=calendarEvents.slice(0,5).map(ev=>ev.summary||'(제목 없음)');diagHtml=`<div class="alert-diag">ℹ 구글 캘린더에서 일정 ${calendarEvents.length}건을 불러왔지만 등록된 품목 코드와 일치하는 정제 일정이 없습니다. 일정 제목과 품목 매핑 코드를 확인해주세요. 예시: ${samples.map(t=>`<span class="alert-missing-item">${escapeHtml(t)}</span>`).join(' ')}</div>`}
-  const cellsHtml=days.map(d=>{const dOnly=dateOnly(d),isToday=dOnly.getTime()===today.getTime(),isOutside=dOnly<monthDate||dOnly>=nextMonth,matches=matchEventsForDate(d);const cards=matches.map(m=>{let solventHtml='';if(m.solvents&&m.solvents.length)solventHtml=m.solvents.map(s=>{const key=missingKey(dOnly,m.code,s),dismissed=dismissedMissingKeys.has(key),missing=!dismissed&&missingSet.has(key),missingBadge=missing?'<span class="alert-missing-badge">⚠ 미기입</span>':'',already=hasEntryForDateSolvent(dOnly,s),tonbagBadge=(dismissed||already)?'':tonbagAvailabilityBadgeHtml(s);return `<span class="alert-solvent-badge">${escapeHtml(s)}</span>${tonbagBadge}${missingBadge}`}).join('');return `<div class="cal-cell-card" title="${escapeHtml(m.title)}"><div class="cal-cell-code">${escapeHtml(m.code)}</div>${solventHtml?`<div class="cal-solvents">${solventHtml}</div>`:''}</div>`}).join('');return `<div class="cal-cell${isOutside?' outside':''}${isToday?' today':''}"><div class="cal-date-num">${dOnly.getDate()}</div>${cards}</div>`}).join('');
-  body.innerHTML=navHtml+diagHtml+missingBannerHtml+`<div class="cal-grid">${weekdayHtml}${cellsHtml}</div>`;
+  const body = document.getElementById('calendarAlertsBody');
+  if(!body) return;
+
+  if(!calendarConfig.calendarId || !calendarConfig.apiKey){
+    body.innerHTML = `<div class="alert-empty">캘린더 ID와 API 키를 설정하면 이번 달 생산 일정에 따른 예상 폐용매를 캘린더로 보여드립니다. 위 "⚙ 캘린더 연동 설정"에서 입력해주세요.</div>`;
+    return;
+  }
+
+  const today = dateOnly(new Date());
+  const monthDate = calendarViewMonth || startOfMonth(today);
+  const monthLabel = `${monthDate.getFullYear()}년 ${monthDate.getMonth()+1}월`;
+  const navHtml = `<div class="cal-month-header">
+      <button type="button" class="cal-month-nav-btn" onclick="changeCalendarMonth(-1)">◀</button>
+      <div class="cal-month-title">${monthLabel}</div>
+      <button type="button" class="cal-month-nav-btn" onclick="changeCalendarMonth(1)">▶</button>
+      <button type="button" class="cal-month-today-btn" onclick="goToCurrentCalendarMonth()">오늘</button>
+    </div>`;
+
+  if(calendarFetchState === 'loading' && calendarEvents.length === 0){
+    body.innerHTML = navHtml + `<div class="alert-empty">캘린더를 불러오는 중…</div>`;
+    return;
+  }
+  if(calendarFetchState === 'error'){
+    body.innerHTML = navHtml + `<div class="alert-error">${escapeHtml(calendarFetchError || '캘린더를 불러오지 못했습니다.')}</div>`;
+    return;
+  }
+
+  const gridStart = startOfGridForMonth(monthDate);
+  const gridEnd = endOfGridForMonth(monthDate);
+  const days = eachDateInRange(gridStart, gridEnd);
+  const nextMonth = addMonths(monthDate, 1);
+
+  const weekdayHtml = WEEKDAY_KO.map((w, i) => `<div class="cal-weekday${i===0 ? ' sun' : ''}">${w}</div>`).join('');
+
+  // 이 그리드 범위 안에서, 폐용매 발생이 예상됐는데 아직 입고내역에 기입되지
+  // 않은 날짜/품목/폐용매를 미리 모아둔다 (오늘 이전~오늘까지만 대상).
+  const missingList = collectMissingWasteEntries(days);
+  const missingKey = (dOnly, code, solvent) => `${ymd(dOnly)}|${code}|${solvent}`;
+  const missingSet = new Set(missingList.map(x => missingKey(x.date, x.code, x.solvent)));
+  // 체크박스로 "확인 완료" 처리한(dismissedMissingKeys) 항목은 배너 목록에서 뺄 뿐만 아니라,
+  // 달력 칸에 표시되는 "⚠ 미기입" / "사용 톤백 없음" 배지도 함께 숨긴다.
+  const visibleMissingList = missingList.filter(x => !dismissedMissingKeys.has(missingKey(x.date, x.code, x.solvent)));
+
+  const missingBannerHtml = visibleMissingList.length
+    ? `<div class="alert-missing-banner">⚠ 폐액 미기입 ${visibleMissingList.length}건 — 입고등록을 했으면 체크하세요: ${
+        visibleMissingList.map(x => {
+          const key = missingKey(x.date, x.code, x.solvent);
+          return `<label class="alert-missing-item"><input type="checkbox" class="alert-missing-checkbox" onchange="toggleMissingDismissed('${escapeHtml(key)}')"><span>${formatDateLabel(x.date)} ${escapeHtml(x.code)}(${escapeHtml(x.solvent)})</span></label>`;
+        }).join(' ')
+      }</div>`
+    : '';
+
+  // 진단 메시지: 캘린더 연동(fetch) 자체는 성공했는데(state==='ok') 화면에
+  // 아무 일정도 안 뜨면 사용자 입장에서는 "연동이 안 된다"처럼 보인다. 이걸
+  // 구분하기 위해 ① 이 달 기간에 캘린더 일정이 아예 0건 조회됐는지, ② 일정은
+  // 있는데 등록된 품목 코드와 제목이 일치하는 게 하나도 없는지를 알려준다.
+  const totalMatchedCards = days.reduce((sum, d) => sum + matchEventsForDate(d).length, 0);
+  let diagHtml = '';
+  if(calendarEvents.length === 0){
+    diagHtml = `<div class="alert-diag">ℹ 캘린더 연동은 정상 작동했지만(마지막 확인 ${calendarLastCheckedAt ? new Date(calendarLastCheckedAt).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'}) : '-'}), ${formatDateLabel(gridStart)}~${formatDateLabel(gridEnd)} 기간에 구글 캘린더에서 조회된 일정이 0건입니다. 이 기간에 실제로 등록된 일정이 있는지, 캘린더가 "공개"로 설정되어 있는지 확인해주세요.</div>`;
+  } else if(totalMatchedCards === 0){
+    const sampleTitles = calendarEvents.slice(0, 5).map(ev => ev.summary || '(제목 없음)');
+    diagHtml = `<div class="alert-diag">ℹ 구글 캘린더에서 이 달 일정 ${calendarEvents.length}건을 불러왔지만, "⚙ 품목 매핑 관리"에 등록된 품목 코드와 일치하는 제목이 하나도 없어 캘린더에 표시되지 않았습니다. 불러온 일정 제목 예시: ${sampleTitles.map(t=>`<span class="alert-missing-item">${escapeHtml(t)}</span>`).join(' ')} — 일정 제목에 품목 코드가 포함되어 있는지, 품목 매핑에 등록된 코드 표기와 일치하는지 확인해주세요.</div>`;
+  }
+
+  const cellsHtml = days.map(d=>{
+    const dOnly = dateOnly(d);
+    const isToday = dOnly.getTime() === today.getTime();
+    const isOutside = dOnly < monthDate || dOnly >= nextMonth;
+    const matches = matchEventsForDate(d);
+    const cardsHtml = matches.map(m=>{
+      let solventsHtml = '';
+      if(m.solvents && m.solvents.length){
+        solventsHtml = m.solvents.map(s=>{
+          const cellKey = missingKey(dOnly, m.code, s);
+          const isDismissed = dismissedMissingKeys.has(cellKey);
+          const isMissing = !isDismissed && missingSet.has(cellKey);
+          const missingBadge = isMissing ? `<span class="alert-missing-badge">⚠ 미기입</span>` : '';
+          // 해당 날짜에 이미 그 폐용매로 입고(생산 완료) 등록이 끝난 경우에는
+          // "사용 가능 톤백" 용량 배지(예: 100L)를 더 보여줄 필요가 없으므로
+          // 숨긴다. 체크박스로 확인 완료 처리된 항목도 마찬가지로 숨긴다.
+          const alreadyEntered = hasEntryForDateSolvent(dOnly, s);
+          const tonbagBadge = (isDismissed || alreadyEntered) ? '' : tonbagAvailabilityBadgeHtml(s);
+          return `<span class="alert-solvent-badge">${escapeHtml(s)}</span>${tonbagBadge}${missingBadge}`;
+        }).join('');
+      } else {
+        solventsHtml = '';
+      }
+      return `<div class="cal-cell-card" title="${escapeHtml(m.title)}">
+        <div class="cal-cell-code">${escapeHtml(m.code)}</div>
+        ${solventsHtml ? `<div class="cal-solvents">${solventsHtml}</div>` : ''}
+      </div>`;
+    }).join('');
+    const classes = ['cal-cell'];
+    if(isOutside) classes.push('outside');
+    if(isToday) classes.push('today');
+    return `<div class="${classes.join(' ')}">
+      <div class="cal-date-num">${dOnly.getDate()}</div>
+      ${cardsHtml}
+    </div>`;
+  }).join('');
+
+  body.innerHTML = navHtml + diagHtml + missingBannerHtml + `<div class="cal-grid">${weekdayHtml}${cellsHtml}</div>`;
 }
+
+// 구글 캘린더 REST API에서, 현재 화면에 표시 중인 달(calendarViewMonth)의 달력
+// 그리드가 덮는 날짜 범위(그 달 1일이 속한 주의 일요일 ~ 마지막날이 속한 주의
+// 토요일) 이벤트를 가져온다. 네트워크 요청이 필요한 함수라서, 설정을 바꿀
+// 때마다가 아니라 "새로고침"/월 이동 버튼을 누르거나 설정이 처음 로드됐을 때만
+// 호출한다.
 async function refreshCalendarAlerts(){
-  if(!calendarConfig.calendarId||!calendarConfig.apiKey){calendarFetchState='idle';renderCalendarAlerts();updateCalendarStatusText();return}
-  calendarFetchState='loading';calendarFetchError='';renderCalendarAlerts();updateCalendarStatusText();
-  try{const monthDate=calendarViewMonth||startOfMonth(new Date()),start=startOfGridForMonth(monthDate),end=new Date(endOfGridForMonth(monthDate));end.setDate(end.getDate()+1);const url=`https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarConfig.calendarId)}/events?key=${encodeURIComponent(calendarConfig.apiKey)}&singleEvents=true&orderBy=startTime&timeMin=${encodeURIComponent(start.toISOString())}&timeMax=${encodeURIComponent(end.toISOString())}&maxResults=250`;const res=await withTimeout(fetch(url),10000);if(!res.ok)throw new Error('HTTP '+res.status);const data=await res.json();calendarEvents=Array.isArray(data.items)?data.items:[];calendarFetchState='ok';calendarLastCheckedAt=Date.now()}catch(e){console.error('[톤백 관리대장] 생산일정 캘린더 조회 실패',e);calendarFetchState='error';calendarFetchError='캘린더를 불러오지 못했습니다. 캘린더 ID/API 키와 "공개" 설정을 확인해주세요.'}
-  renderCalendarAlerts();updateCalendarStatusText();
+  if(!calendarConfig.calendarId || !calendarConfig.apiKey){
+    calendarFetchState = 'idle';
+    renderCalendarAlerts();
+    updateCalendarStatusText();
+    return;
+  }
+  calendarFetchState = 'loading';
+  calendarFetchError = '';
+  renderCalendarAlerts();
+  updateCalendarStatusText();
+  try{
+    const monthDate = calendarViewMonth || startOfMonth(new Date());
+    const start = startOfGridForMonth(monthDate);
+    const end = new Date(endOfGridForMonth(monthDate));
+    end.setDate(end.getDate()+1); // 그리드 마지막날 다음날 0시(exclusive)
+    const url = `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarConfig.calendarId)}/events`
+      + `?key=${encodeURIComponent(calendarConfig.apiKey)}`
+      + `&singleEvents=true&orderBy=startTime`
+      + `&timeMin=${encodeURIComponent(start.toISOString())}`
+      + `&timeMax=${encodeURIComponent(end.toISOString())}`
+      + `&maxResults=250`;
+    const res = await withTimeout(fetch(url), 10000);
+    if(!res.ok){
+      throw new Error('HTTP ' + res.status);
+    }
+    const data = await res.json();
+    calendarEvents = Array.isArray(data.items) ? data.items : [];
+    calendarFetchState = 'ok';
+    calendarLastCheckedAt = Date.now();
+  }catch(e){
+    console.error('[톤백 관리대장] 생산일정 캘린더 조회 실패', e);
+    calendarFetchState = 'error';
+    calendarFetchError = '캘린더를 불러오지 못했습니다. 캘린더 ID/API 키와 "공개" 설정을 확인해주세요.';
+  }
+  renderCalendarAlerts();
+  updateCalendarStatusText();
 }
-function changeCalendarMonth(delta){const base=calendarViewMonth||startOfMonth(new Date());calendarViewMonth=addMonths(base,delta);refreshCalendarAlerts()}
-function goToCurrentCalendarMonth(){calendarViewMonth=startOfMonth(new Date());refreshCalendarAlerts()}
-function maybeAutoFetchCalendar(){if(calendarAutoFetchDone||!calendarConfig.calendarId||!calendarConfig.apiKey)return;calendarAutoFetchDone=true;refreshCalendarAlerts()}
-function toggleCalendarSettings(){calendarSettingsOpen=!calendarSettingsOpen;document.getElementById('calendarSettingsPanel').style.display=calendarSettingsOpen?'block':'none';document.getElementById('calendarSettingsToggleBtn').textContent=calendarSettingsOpen?'⚙ 캘린더 연동 설정 닫기':'⚙ 캘린더 연동 설정';if(calendarSettingsOpen){document.getElementById('calCalendarId').value=calendarConfig.calendarId;document.getElementById('calApiKey').value=calendarConfig.apiKey;updateCalendarStatusText()}}
-function handleCalendarConfigInput(){calendarConfig.calendarId=document.getElementById('calCalendarId').value.trim();calendarConfig.apiKey=document.getElementById('calApiKey').value.trim();markDirty()}
 
-/* Product / solvent mapping manager */
-function parseProductRuleText(text){const trimmed=String(text||'').trim();if(!trimmed)return{};const pattern=/(\d+)\s*일\s*차\s*:?/g,matches=[];let m;while((m=pattern.exec(trimmed))!==null)matches.push({day:Number(m[1]),matchIndex:m.index,valueStart:m.index+m[0].length});if(!matches.length){const solvents=trimmed.split(',').map(s=>s.trim()).filter(Boolean);return solvents.length?{1:solvents}:{}}const rule={};matches.forEach((entry,i)=>{const end=i+1<matches.length?matches[i+1].matchIndex:trimmed.length,solvents=trimmed.slice(entry.valueStart,end).split(',').map(s=>s.trim()).filter(Boolean);if(solvents.length)rule[entry.day]=solvents});return rule}
-function formatProductRuleText(rule){const days=Object.keys(rule||{}).map(Number).filter(n=>Number.isFinite(n)).sort((a,b)=>a-b);if(!days.length)return'';if(days.length===1&&days[0]===1)return(rule[1]||[]).join(', ');return days.map(d=>`${d}일차:${(rule[d]||[]).join(',')}`).join(', ')}
-function toggleProductManage(){productManageOpen=!productManageOpen;document.getElementById('productManagePanel').style.display=productManageOpen?'block':'none';document.getElementById('productManageToggleBtn').textContent=productManageOpen?'⚙ 품목 매핑 관리 닫기':'⚙ 품목 매핑 관리';if(productManageOpen)renderProductManageList()}
-function renderProductManageList(){const list=document.getElementById('productManageList');if(!list)return;const codes=Object.keys(productWasteMap).sort();if(!codes.length){list.innerHTML='<div class="waste-manage-empty">등록된 품목이 없습니다. 아래에서 추가해주세요.</div>';return}list.innerHTML=codes.map(code=>`<div class="product-manage-row"><input type="text" value="${escapeHtml(code)}" data-code="${escapeHtml(code)}" onchange="renameProductCode(this)"><input type="text" class="rule-input" value="${escapeHtml(formatProductRuleText(productWasteMap[code]))}" data-code="${escapeHtml(code)}" onchange="updateProductRule(this)"><button type="button" class="waste-chip-del" onclick="deleteProductMapping('${escapeHtml(code)}')" title="삭제">✕</button></div>`).join('')}
-function addProductMapping(){const ci=document.getElementById('newProductCode'),ri=document.getElementById('newProductRule'),code=ci.value.trim(),ruleText=ri.value.trim();if(!code||!ruleText)return;if(productWasteMap[code]){ci.value='';ri.value='';return}const rule=parseProductRuleText(ruleText);if(!Object.keys(rule).length)return;productWasteMap[code]=rule;ci.value='';ri.value='';markDirty();renderProductManageList();renderCalendarAlerts()}
-function renameProductCode(inputEl){const old=inputEl.dataset.code,newCode=inputEl.value.trim();if(!newCode||(newCode!==old&&productWasteMap[newCode])){inputEl.value=old;return}if(newCode===old)return;const rule=productWasteMap[old];delete productWasteMap[old];productWasteMap[newCode]=rule;markDirty();renderProductManageList();renderCalendarAlerts()}
-function updateProductRule(inputEl){const code=inputEl.dataset.code,rule=parseProductRuleText(inputEl.value);if(!Object.keys(rule).length){inputEl.value=formatProductRuleText(productWasteMap[code]);return}productWasteMap[code]=rule;markDirty();renderCalendarAlerts()}
-function deleteProductMapping(code){delete productWasteMap[code];markDirty();renderProductManageList();renderCalendarAlerts()}
+// 달력에 표시할 달을 delta개월만큼 옮기고 새로 불러온다 (◀/▶ 버튼).
+function changeCalendarMonth(delta){
+  const base = calendarViewMonth || startOfMonth(new Date());
+  calendarViewMonth = addMonths(base, delta);
+  refreshCalendarAlerts();
+}
 
-/* Waste preset manager */
-function wasteOptionsHtml(selected){let html='<option value="">선택</option>';html+=wastePresets.map(p=>`<option value="${escapeHtml(p)}" ${p===selected?'selected':''}>${escapeHtml(p)}</option>`).join('');html+=`<option value="${OTHER_VALUE}">✎ 기타 (직접 입력)</option>`;if(selected&&selected!==OTHER_VALUE&&!wastePresets.includes(selected))html+=`<option value="${escapeHtml(selected)}" selected>${escapeHtml(selected)} (목록에 없음)</option>`;return html}
-function handleMemoSelectChange(selectEl){const other=document.getElementById('fMemoOther');if(selectEl.value===OTHER_VALUE){other.style.display='block';other.value='';other.focus()}else{other.style.display='none';other.value=''}}
-function renderWasteSelect(){const select=document.getElementById('fMemo');if(!select)return;const selected=select.value;select.innerHTML=wasteOptionsHtml(selected);select.value=selected}
-function toggleWasteManage(){wasteManageOpen=!wasteManageOpen;document.getElementById('wasteManagePanel').style.display=wasteManageOpen?'block':'none';document.getElementById('wasteManageToggleBtn').textContent=wasteManageOpen?'⚙ 목록 관리 닫기':'⚙ 목록 관리';if(wasteManageOpen)renderWasteManageList()}
-function renderWasteManageList(){const list=document.getElementById('wasteManageList');if(!list)return;if(!wastePresets.length){list.innerHTML='<div class="waste-manage-empty">등록된 폐용매가 없습니다. 아래에서 추가해주세요.</div>';return}list.innerHTML=wastePresets.map((p,idx)=>`<div class="waste-chip"><input type="text" value="${escapeHtml(p)}" data-idx="${idx}" onchange="renameWastePreset(this)"><button class="waste-chip-del" type="button" onclick="deleteWastePreset(${idx})" title="삭제">✕</button></div>`).join('')}
-function addWastePreset(){const input=document.getElementById('newWasteInput'),val=input.value.trim();if(!val)return;if(wastePresets.includes(val)){input.value='';return}wastePresets.push(val);input.value='';markDirty();renderWasteManageList();renderWasteSelect()}
-function renameWastePreset(inputEl){const idx=Number(inputEl.dataset.idx),val=inputEl.value.trim();if(!val){inputEl.value=wastePresets[idx];return}wastePresets[idx]=val;markDirty();renderWasteSelect()}
-function deleteWastePreset(idx){wastePresets.splice(idx,1);markDirty();renderWasteManageList();renderWasteSelect()}
+// 달력을 이번 달로 되돌린다 ("오늘" 버튼).
+function goToCurrentCalendarMonth(){
+  calendarViewMonth = startOfMonth(new Date());
+  refreshCalendarAlerts();
+}
 
-/* Inventory calculations and form */
-const CAPACITY_OPTIONS=[100,200,300,400,500,600,700,800,900];
-function capacityOptionsHtml(selected){const sel=selected?String(selected):'';return '<option value="">선택</option>'+CAPACITY_OPTIONS.map(v=>`<option value="${v}" ${String(v)===sel?'selected':''}>${v}L</option>`).join('')}
-function setType(type){currentType=type;document.querySelectorAll('.type-toggle button').forEach(b=>b.classList.toggle('active',b.dataset.type===type));const cap=document.getElementById('capacityField');if(type==='half')cap.style.display='block';else{cap.style.display='none';document.getElementById('fCapacity').value=''}}
-function stepQty(delta){const input=document.getElementById('fQty');let val=parseInt(input.value,10);if(isNaN(val))val=0;input.value=Math.max(1,val+delta)}
-function getStock(excludeId){let full=0,half=0,empty=0;entries.forEach(e=>{if(excludeId&&e.id===excludeId)return;if(e.type==='full'){full+=e.qty;empty-=e.qty}else if(e.type==='half'){half+=e.qty;empty-=e.qty}else if(e.type==='empty')empty+=e.qty});return{full,half,empty:Math.max(0,empty)}}
-function startEditEntry(id){const target=entries.find(e=>e.id===id);if(!target)return;editingId=id;document.getElementById('fDate').value=target.date;document.getElementById('fQty').value=target.qty;document.getElementById('fMemo').innerHTML=wasteOptionsHtml(target.memo||'');document.getElementById('fMemo').value=target.memo||'';document.getElementById('fMemoOther').style.display='none';document.getElementById('fMemoOther').value='';setType(target.type);if(target.type==='half')document.getElementById('fCapacity').value=target.capacity!=null?String(target.capacity):'';document.getElementById('formPanelTitle').textContent='입고 내역 수정';document.getElementById('editModeNote').classList.add('show');document.getElementById('submitBtn').textContent='수정 완료';document.getElementById('cancelEditBtn').style.display='block';document.getElementById('formHint').textContent='';document.querySelector('.dashboard-left .panel:nth-child(2)').scrollIntoView({behavior:'smooth',block:'start'})}
-function exitEditMode(){editingId=null;document.getElementById('formPanelTitle').textContent='입고 등록';document.getElementById('editModeNote').classList.remove('show');document.getElementById('submitBtn').textContent='입고 등록';document.getElementById('cancelEditBtn').style.display='none'}
-function cancelEdit(){exitEditMode();document.getElementById('fDate').value=todayStr();document.getElementById('fQty').value=1;document.getElementById('fMemo').value='';document.getElementById('fMemoOther').style.display='none';document.getElementById('fMemoOther').value='';setType('full');document.getElementById('formHint').textContent='';render()}
+// 설정(calendarConfig)이 채워진 뒤 처음 한 번만 자동으로 캘린더를 불러온다.
+// (render()가 호출될 때마다 확인하되, 이미 한 번 불러왔으면 다시 하지 않는다.)
+function maybeAutoFetchCalendar(){
+  if(calendarAutoFetchDone) return;
+  if(!calendarConfig.calendarId || !calendarConfig.apiKey) return;
+  calendarAutoFetchDone = true;
+  refreshCalendarAlerts();
+}
+
+function toggleCalendarSettings(){
+  calendarSettingsOpen = !calendarSettingsOpen;
+  document.getElementById('calendarSettingsPanel').style.display = calendarSettingsOpen ? 'block' : 'none';
+  document.getElementById('calendarSettingsToggleBtn').textContent = calendarSettingsOpen ? '⚙ 캘린더 연동 설정 닫기' : '⚙ 캘린더 연동 설정';
+  if(calendarSettingsOpen){
+    document.getElementById('calCalendarId').value = calendarConfig.calendarId;
+    document.getElementById('calApiKey').value = calendarConfig.apiKey;
+    updateCalendarStatusText();
+  }
+}
+
+function handleCalendarConfigInput(){
+  calendarConfig.calendarId = document.getElementById('calCalendarId').value.trim();
+  calendarConfig.apiKey = document.getElementById('calApiKey').value.trim();
+  markDirty();
+}
+
+/* ---- 품목 → 폐용매 매핑 관리 ---- */
+
+// "1일차:XY, 2일차:XY+ACT" 같은 한 줄짜리 입력을 {1:['XY'], 2:['XY+ACT']} 형태로
+// 바꾼다. "일차" 표시가 전혀 없으면 전체를 1일차(하루짜리 품목)로 본다. 같은
+// 일차에 폐용매가 여러 개면 쉼표로 구분한다(예: "2일차:TOL,MeOH+ACT").
+function parseProductRuleText(text){
+  const trimmed = String(text || '').trim();
+  if(!trimmed) return {};
+  const dayPattern = /(\d+)\s*일\s*차\s*:?/g;
+  const matches = [];
+  let m;
+  while((m = dayPattern.exec(trimmed)) !== null){
+    matches.push({ day: Number(m[1]), matchIndex: m.index, valueStart: m.index + m[0].length });
+  }
+  if(matches.length === 0){
+    const solvents = trimmed.split(',').map(s=>s.trim()).filter(Boolean);
+    return solvents.length ? { 1: solvents } : {};
+  }
+  const rule = {};
+  matches.forEach((entry, i)=>{
+    const valueEnd = (i + 1 < matches.length) ? matches[i+1].matchIndex : trimmed.length;
+    const chunk = trimmed.slice(entry.valueStart, valueEnd);
+    const solvents = chunk.split(',').map(s=>s.trim()).filter(Boolean);
+    if(solvents.length) rule[entry.day] = solvents;
+  });
+  return rule;
+}
+
+// parseProductRuleText()의 반대 — 저장된 규칙을 다시 편집 가능한 한 줄 텍스트로 만든다.
+function formatProductRuleText(rule){
+  const days = Object.keys(rule || {}).map(Number).filter(n=>Number.isFinite(n)).sort((a,b)=>a-b);
+  if(days.length === 0) return '';
+  if(days.length === 1 && days[0] === 1){
+    return (rule[1] || []).join(', ');
+  }
+  return days.map(d => `${d}일차:${(rule[d] || []).join(',')}`).join(', ');
+}
+
+function toggleProductManage(){
+  productManageOpen = !productManageOpen;
+  document.getElementById('productManagePanel').style.display = productManageOpen ? 'block' : 'none';
+  document.getElementById('productManageToggleBtn').textContent = productManageOpen ? '⚙ 품목 매핑 관리 닫기' : '⚙ 품목 매핑 관리';
+  if(productManageOpen) renderProductManageList();
+}
+
+function renderProductManageList(){
+  const list = document.getElementById('productManageList');
+  if(!list) return;
+  const codes = Object.keys(productWasteMap).sort();
+  if(codes.length === 0){
+    list.innerHTML = `<div class="waste-manage-empty">등록된 품목이 없습니다. 아래에서 추가해주세요.</div>`;
+    return;
+  }
+  list.innerHTML = codes.map(code => `
+    <div class="product-manage-row">
+      <input type="text" value="${escapeHtml(code)}" data-code="${escapeHtml(code)}" onchange="renameProductCode(this)">
+      <input type="text" class="rule-input" value="${escapeHtml(formatProductRuleText(productWasteMap[code]))}" data-code="${escapeHtml(code)}" onchange="updateProductRule(this)">
+      <button type="button" class="waste-chip-del" onclick="deleteProductMapping('${escapeHtml(code)}')" title="삭제">✕</button>
+    </div>
+  `).join('');
+}
+
+function addProductMapping(){
+  const codeInput = document.getElementById('newProductCode');
+  const ruleInput = document.getElementById('newProductRule');
+  const code = codeInput.value.trim();
+  const ruleText = ruleInput.value.trim();
+  if(!code || !ruleText) return;
+  if(productWasteMap[code]){
+    codeInput.value = '';
+    ruleInput.value = '';
+    return;
+  }
+  const rule = parseProductRuleText(ruleText);
+  if(Object.keys(rule).length === 0) return;
+  productWasteMap[code] = rule;
+  codeInput.value = '';
+  ruleInput.value = '';
+  markDirty();
+  renderProductManageList();
+  renderCalendarAlerts();
+}
+
+function renameProductCode(inputEl){
+  const oldCode = inputEl.dataset.code;
+  const newCode = inputEl.value.trim();
+  if(!newCode || (newCode !== oldCode && productWasteMap[newCode])){
+    inputEl.value = oldCode; // 빈 값이거나 이미 있는 코드면 되돌린다
+    return;
+  }
+  if(newCode === oldCode) return;
+  const rule = productWasteMap[oldCode];
+  delete productWasteMap[oldCode];
+  productWasteMap[newCode] = rule;
+  markDirty();
+  renderProductManageList();
+  renderCalendarAlerts();
+}
+
+function updateProductRule(inputEl){
+  const code = inputEl.dataset.code;
+  const rule = parseProductRuleText(inputEl.value);
+  if(Object.keys(rule).length === 0){
+    inputEl.value = formatProductRuleText(productWasteMap[code]); // 비어 있으면 원래 값으로 되돌린다
+    return;
+  }
+  productWasteMap[code] = rule;
+  markDirty();
+  renderCalendarAlerts();
+}
+
+function deleteProductMapping(code){
+  delete productWasteMap[code];
+  markDirty();
+  renderProductManageList();
+  renderCalendarAlerts();
+}
+
+const CAPACITY_OPTIONS = [100,200,300,400,500,600,700,800,900];
+
+function capacityOptionsHtml(selected){
+  const sel = selected ? String(selected) : '';
+  let html = `<option value="">선택</option>`;
+  html += CAPACITY_OPTIONS.map(v=>`<option value="${v}" ${String(v)===sel ? 'selected' : ''}>${v}L</option>`).join('');
+  return html;
+}
+
+/* ---- 폐용매(메모) 드롭다운 & 목록 관리 ---- */
+
+// 폐용매 <select>용 <option> 목록을 만든다. selected 값이 현재 목록(wastePresets)에
+// 없어도(과거 자유 입력 데이터, 또는 삭제된 항목) 사라지지 않도록 "(목록에 없음)"
+// 표시로 임시 옵션을 하나 더 붙여준다. 입고 등록 폼(#fMemo)과 입고 내역 표의 각 행
+// 드롭다운이 모두 이 함수를 공유한다.
+function wasteOptionsHtml(selected){
+  let html = `<option value="">선택</option>`;
+  html += wastePresets.map(p => `<option value="${escapeHtml(p)}" ${p===selected ? 'selected' : ''}>${escapeHtml(p)}</option>`).join('');
+  html += `<option value="${OTHER_VALUE}">✎ 기타 (직접 입력)</option>`;
+  if(selected && selected !== OTHER_VALUE && !wastePresets.includes(selected)){
+    html += `<option value="${escapeHtml(selected)}" selected>${escapeHtml(selected)} (목록에 없음)</option>`;
+  }
+  return html;
+}
+
+// 입고 등록 폼에서 "기타"를 고르면 직접 입력창을 보여주고, 다른 값을 고르면 숨긴다.
+function handleMemoSelectChange(selectEl){
+  const otherInput = document.getElementById('fMemoOther');
+  if(!otherInput) return;
+  if(selectEl.value === OTHER_VALUE){
+    otherInput.style.display = 'block';
+    otherInput.value = '';
+    otherInput.focus();
+  } else {
+    otherInput.style.display = 'none';
+    otherInput.value = '';
+  }
+}
+
+function renderWasteSelect(){
+  const select = document.getElementById('fMemo');
+  if(!select) return;
+  select.innerHTML = wasteOptionsHtml(select.value);
+}
+
+function toggleWasteManage(){
+  wasteManageOpen = !wasteManageOpen;
+  document.getElementById('wasteManagePanel').style.display = wasteManageOpen ? 'block' : 'none';
+  document.getElementById('wasteManageToggleBtn').textContent = wasteManageOpen ? '⚙ 목록 관리 닫기' : '⚙ 목록 관리';
+  if(wasteManageOpen) renderWasteManageList();
+}
+
+function renderWasteManageList(){
+  const list = document.getElementById('wasteManageList');
+  if(!list) return;
+  if(wastePresets.length === 0){
+    list.innerHTML = `<div class="waste-manage-empty">등록된 폐용매가 없습니다. 아래에서 추가해주세요.</div>`;
+    return;
+  }
+  list.innerHTML = wastePresets.map((p, idx) => `
+    <div class="waste-chip">
+      <input type="text" value="${escapeHtml(p)}" data-idx="${idx}" onchange="renameWastePreset(this)">
+      <button type="button" class="waste-chip-del" onclick="deleteWastePreset(${idx})" title="삭제">✕</button>
+    </div>
+  `).join('');
+}
+
+function addWastePreset(){
+  const input = document.getElementById('newWasteInput');
+  const val = input.value.trim();
+  if(!val) return;
+  if(wastePresets.includes(val)){
+    input.value = '';
+    return;
+  }
+  wastePresets.push(val);
+  input.value = '';
+  markDirty();
+  renderWasteManageList();
+  renderWasteSelect();
+}
+
+function renameWastePreset(inputEl){
+  const idx = Number(inputEl.dataset.idx);
+  const val = inputEl.value.trim();
+  if(!val){
+    inputEl.value = wastePresets[idx]; // 빈 값으로는 바꿀 수 없음 — 원래 값으로 되돌림
+    return;
+  }
+  wastePresets[idx] = val;
+  markDirty();
+  renderWasteSelect();
+}
+
+function deleteWastePreset(idx){
+  wastePresets.splice(idx, 1);
+  markDirty();
+  renderWasteManageList();
+  renderWasteSelect();
+}
+
+function setType(type){
+  currentType = type;
+  document.querySelectorAll('.type-toggle button').forEach(b=>{
+    b.classList.toggle('active', b.dataset.type === type);
+  });
+  const capacityField = document.getElementById('capacityField');
+  if(type === 'half'){
+    capacityField.style.display = 'block';
+  } else {
+    capacityField.style.display = 'none';
+    document.getElementById('fCapacity').value = '';
+  }
+}
+
+function stepQty(delta){
+  const input = document.getElementById('fQty');
+  let val = parseInt(input.value, 10);
+  if(isNaN(val)) val = 0;
+  val = Math.max(1, val + delta);
+  input.value = val;
+}
+
+function getStock(excludeId){
+  // 빈톤백 입고는 빈톤백 재고를 늘리고, Full/Half 입고는 빈톤백을 채워서 쓰는 것이므로
+  // 빈톤백 재고에서 "항상 1개 단위로" 그만큼 차감한다 (Half라고 해서 0.5개만 차감하지 않음).
+  // excludeId를 넘기면 그 항목은 계산에서 제외한다 — 기존 항목을 수정할 때, 그 항목이
+  // 이미 반영해둔 차감분을 빼고 "이 항목이 없었다면"의 재고를 기준으로 다시 검사하기 위함.
+  let full = 0, half = 0, empty = 0;
+  entries.forEach(e=>{
+    if(excludeId && e.id === excludeId) return;
+    if(e.type === 'full'){ full += e.qty; empty -= e.qty; }
+    else if(e.type === 'half'){ half += e.qty; empty -= e.qty; }
+    else if(e.type === 'empty'){ empty += e.qty; }
+  });
+  return { full, half, empty: Math.max(0, empty) };
+}
+
+function startEditEntry(id){
+  const target = entries.find(e => e.id === id);
+  if(!target) return;
+  editingId = id;
+  document.getElementById('fDate').value = target.date;
+  document.getElementById('fQty').value = target.qty;
+  document.getElementById('fMemo').innerHTML = wasteOptionsHtml(target.memo || '');
+  document.getElementById('fMemo').value = target.memo || '';
+  document.getElementById('fMemoOther').style.display = 'none';
+  document.getElementById('fMemoOther').value = '';
+  setType(target.type);
+  if(target.type === 'half'){
+    document.getElementById('fCapacity').value = target.capacity != null ? String(target.capacity) : '';
+  }
+  document.getElementById('formPanelTitle').textContent = '입고 내역 수정';
+  document.getElementById('editModeNote').classList.add('show');
+  document.getElementById('submitBtn').textContent = '수정 완료';
+  document.getElementById('cancelEditBtn').style.display = 'block';
+  document.getElementById('formHint').textContent = '';
+  document.querySelector('.panel').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function exitEditMode(){
+  editingId = null;
+  document.getElementById('formPanelTitle').textContent = '입고 등록';
+  document.getElementById('editModeNote').classList.remove('show');
+  document.getElementById('submitBtn').textContent = '입고 등록';
+  document.getElementById('cancelEditBtn').style.display = 'none';
+}
+
+function cancelEdit(){
+  exitEditMode();
+  document.getElementById('fDate').value = todayStr();
+  document.getElementById('fQty').value = 1;
+  document.getElementById('fMemo').value = '';
+  document.getElementById('fMemoOther').style.display = 'none';
+  document.getElementById('fMemoOther').value = '';
+  setType('full');
+  document.getElementById('formHint').textContent = '';
+  render();
+}
+
 async function submitEntry(){
-  const hint=document.getElementById('formHint');hint.textContent='';const date=document.getElementById('fDate').value||todayStr(),qty=parseInt(document.getElementById('fQty').value,10),memoEl=document.getElementById('fMemo'),memoOther=document.getElementById('fMemoOther'),capacityEl=document.getElementById('fCapacity');let memo=memoEl.value.trim();
-  if(!qty||qty<=0){hint.textContent='수량을 1개 이상 입력해주세요.';return}
-  if(memo===OTHER_VALUE){memo=memoOther.value.trim();if(!memo){hint.textContent='폐용매를 "기타"로 선택하셨다면 이름을 입력해주세요.';return}}
-  if(currentType==='full'||currentType==='half'){const stock=getStock(editingId);if(qty>stock.empty){hint.textContent=`빈톤백 재고 부족: 현재 빈톤백 재고는 ${stock.empty}개입니다. 빈톤백을 먼저 입고하거나 수량을 줄여주세요.`;return}}
-  let capacity=null;if(currentType==='half'){if(!capacityEl.value){hint.textContent='사용 상태는 용량(L)을 선택해주세요.';return}capacity=Number(capacityEl.value)}
-  if(editingId){const idx=entries.findIndex(e=>e.id===editingId);if(idx===-1){hint.textContent='수정할 항목을 찾지 못했습니다. 목록이 바뀌었을 수 있어요 — 다시 시도해주세요.';exitEditMode();return}const capChanged=currentType==='half'&&capacity!==entries[idx].capacity;entries[idx]={...entries[idx],date,type:currentType,qty,memo,capacity,...(capChanged?{capChangedDate:ymd(new Date())}:{})};if(capChanged)pendingCapEntryIds.add(entries[idx].id);markDirty();exitEditMode()}
-  else{entries.push({id:Date.now()+'-'+Math.random().toString(36).slice(2,7),date,type:currentType,qty,memo,capacity,createdAt:Date.now()});markDirty()}
-  document.getElementById('fQty').value=1;memoEl.value='';memoOther.style.display='none';memoOther.value='';capacityEl.value='';render();
-}
-async function changeEntryType(selectEl){const id=selectEl.dataset.id,newType=selectEl.value,entry=entries.find(e=>e.id===id);if(!entry||entry.type===newType)return;entry.type=newType;if(newType==='full')entry.capacity=null;if(editingId===id){setType(newType);if(newType==='half')document.getElementById('fCapacity').value=entry.capacity!=null?String(entry.capacity):''}markDirty();render()}
-async function changeEntryCapacity(selectEl){const id=selectEl.dataset.id,entry=entries.find(e=>e.id===id);if(!entry)return;const newCapacity=selectEl.value?Number(selectEl.value):null;if(newCapacity!==entry.capacity){entry.capChangedDate=ymd(new Date());pendingCapEntryIds.add(entry.id)}entry.capacity=newCapacity;if(editingId===id)document.getElementById('fCapacity').value=selectEl.value;markDirty();render()}
-async function changeEntryMemo(selectEl){const id=selectEl.dataset.id,entry=entries.find(e=>e.id===id);if(!entry)return;let value=selectEl.value;if(value===OTHER_VALUE){const typed=prompt('폐용매 이름을 입력하세요.',entry.memo&&!wastePresets.includes(entry.memo)?entry.memo:'');if(typed===null||!typed.trim()){selectEl.innerHTML=wasteOptionsHtml(entry.memo);selectEl.value=entry.memo;return}value=typed.trim()}entry.memo=value;if(editingId===id){document.getElementById('fMemo').innerHTML=wasteOptionsHtml(entry.memo);document.getElementById('fMemo').value=entry.memo;document.getElementById('fMemoOther').style.display='none';document.getElementById('fMemoOther').value=''}markDirty();render()}
-async function deleteEntry(id){if(editingId===id)cancelEdit();entries=entries.filter(e=>e.id!==id);markDirty();render()}
-async function handleSaveClick(){const btn=document.getElementById('saveBtn'),hint=document.getElementById('formHint');if(hint)hint.textContent='';btn.disabled=true;const pendingBackup=new Set(pendingCapEntryIds),dismissedBackup=new Set(dismissedMissingKeys);if(pendingCapEntryIds.size){const days=getCalendarViewDays(),keyOf=x=>`${ymd(x.date)}|${x.code}|${x.solvent}`,before=new Set(collectMissingWasteEntries(days).map(keyOf));pendingCapEntryIds.clear();collectMissingWasteEntries(days).forEach(x=>before.delete(keyOf(x)));before.forEach(k=>dismissedMissingKeys.add(k))}await saveEntries();btn.disabled=false;const failed=hint&&hint.textContent;if(failed){pendingBackup.forEach(id=>pendingCapEntryIds.add(id));dismissedMissingKeys=dismissedBackup}else{renderCalendarAlerts();isDirty=false;clearTimeout(saveClickTimer);btn.classList.remove('dirty');btn.classList.add('done');btn.textContent='✓ 저장됨';saveClickTimer=setTimeout(updateSaveButtonUI,1500)}}
-function handleClearClick(){const typed=prompt('입고 내역을 전부 삭제합니다. 되돌릴 수 없습니다.\n\n계속하려면 아래에 "전체삭제"라고 입력하세요.');if(typed===null)return;const hint=document.getElementById('formHint');if(typed.trim()!=='전체삭제'){if(hint)hint.textContent='입력한 내용이 "전체삭제"와 일치하지 않아 취소되었습니다.';return}if(hint)hint.textContent='';clearAllEntries()}
-async function clearAllEntries(){if(editingId)cancelEdit();entries=[];markDirty();render()}
+  const hint = document.getElementById('formHint');
+  hint.textContent = '';
 
-/* Rendering */
-function bagIcon(type,uid){const colorVar=`var(${TYPE_COLOR_VAR[type]})`,ratio=TYPE_RATIO[type],top=4,bottom=18,filledH=(bottom-top)*ratio,rectY=bottom-filledH,clipId='clip-'+String(uid).replace(/[^a-zA-Z0-9_-]/g,'');return `<svg width="16" height="16" viewBox="0 0 20 20" style="flex-shrink:0"><defs><clipPath id="${clipId}"><path d="M5 4 L15 4 L17 18 L3 18 Z"/></clipPath></defs><path d="M5 4 L15 4 L17 18 L3 18 Z" fill="none" stroke="${colorVar}" stroke-width="1.6" stroke-linejoin="round"/><rect x="3" y="${rectY}" width="14" height="${filledH}" fill="${colorVar}" opacity=".85" clip-path="url(#${clipId})"/></svg>`}
-function renderStats(){const stock=getStock();document.getElementById('statTotal').textContent=stock.full+stock.half+stock.empty;document.getElementById('statFull').textContent=stock.full;document.getElementById('statHalf').textContent=stock.half;document.getElementById('statEmpty').textContent=stock.empty}
+  const dateEl = document.getElementById('fDate');
+  const qtyEl = document.getElementById('fQty');
+  const memoEl = document.getElementById('fMemo');
+  const memoOtherEl = document.getElementById('fMemoOther');
+  const capacityEl = document.getElementById('fCapacity');
+
+  const date = dateEl.value || todayStr();
+  const qty = parseInt(qtyEl.value, 10);
+  let memo = memoEl.value.trim();
+
+  if(!qty || qty <= 0){
+    hint.textContent = '수량을 1개 이상 입력해주세요.';
+    return;
+  }
+
+  // "기타"를 골랐다면 직접 입력한 이름을 폐용매 값으로 사용한다.
+  if(memo === OTHER_VALUE){
+    memo = memoOtherEl.value.trim();
+    if(!memo){
+      hint.textContent = '폐용매를 "기타"로 선택하셨다면 이름을 입력해주세요.';
+      return;
+    }
+  }
+
+  if(currentType === 'full' || currentType === 'half'){
+    // 수정 모드일 때는 "수정 중인 이 항목 자체"는 재고 계산에서 빼고 검사한다
+    // (그렇지 않으면 이미 자기 자신이 차감해둔 만큼 때문에 재고가 부족하다고 잘못 판단됨)
+    const stock = getStock(editingId);
+    if(qty > stock.empty){
+      hint.textContent = `빈톤백 재고 부족: 현재 빈톤백 재고는 ${stock.empty}개입니다. 빈톤백을 먼저 입고하거나 수량을 줄여주세요.`;
+      return;
+    }
+  }
+
+  // "사용" 상태는 톤백 안에 남은 내용물 양을 L 단위(100~900)로 함께 기록한다.
+  let capacity = null;
+  if(currentType === 'half'){
+    if(!capacityEl.value){
+      hint.textContent = '사용 상태는 용량(L)을 선택해주세요.';
+      return;
+    }
+    capacity = Number(capacityEl.value);
+  }
+
+  if(editingId){
+    const idx = entries.findIndex(e => e.id === editingId);
+    if(idx === -1){
+      hint.textContent = '수정할 항목을 찾지 못했습니다. 목록이 바뀌었을 수 있어요 — 다시 시도해주세요.';
+      exitEditMode();
+      return;
+    }
+    const capChanged = currentType === 'half' && capacity !== entries[idx].capacity;
+    entries[idx] = { ...entries[idx], date, type: currentType, qty, memo, capacity, ...(capChanged ? { capChangedDate: ymd(new Date()) } : {}) };
+    if(capChanged) pendingCapEntryIds.add(entries[idx].id);
+    markDirty();
+    exitEditMode();
+  } else {
+    const entry = {
+      id: Date.now() + '-' + Math.random().toString(36).slice(2,7),
+      date,
+      type: currentType,
+      qty,
+      memo,
+      capacity,
+      createdAt: Date.now()
+    };
+    entries.push(entry);
+    markDirty();
+  }
+
+  qtyEl.value = 1;
+  memoEl.value = '';
+  memoOtherEl.style.display = 'none';
+  memoOtherEl.value = '';
+  capacityEl.value = '';
+  render();
+}
+
+async function changeEntryType(selectEl){
+  // 입고내역 표에서 드롭다운으로 Full <-> 사용을 바로 전환한다.
+  // 두 상태 모두 빈톤백을 수량만큼 1:1로 차감하는 건 동일하므로, 재고 부족 검사 없이
+  // 안전하게 종류만 바꿔 저장한다.
+  const id = selectEl.dataset.id;
+  const newType = selectEl.value;
+  const entry = entries.find(e => e.id === id);
+  if(!entry || entry.type === newType) return;
+  entry.type = newType;
+  if(newType === 'full'){
+    // Full로 바뀌면 더 이상 "남은 용량"이 의미가 없으므로 지운다
+    entry.capacity = null;
+  }
+  if(editingId === id){
+    // 수정 폼이 이 항목을 열어둔 상태라면 폼의 종류 선택도 같이 맞춰준다
+    setType(newType);
+    if(newType === 'half'){
+      document.getElementById('fCapacity').value = entry.capacity != null ? String(entry.capacity) : '';
+    }
+  }
+  markDirty();
+  render();
+}
+
+async function changeEntryCapacity(selectEl){
+  // 입고내역 표에서 "사용" 행의 용량(L)을 바로 드롭다운으로 바꾼다.
+  const id = selectEl.dataset.id;
+  const entry = entries.find(e => e.id === id);
+  if(!entry) return;
+  const newCapacity = selectEl.value ? Number(selectEl.value) : null;
+  if(newCapacity !== entry.capacity){
+    // 용량이 실제로 바뀌면 "폐액을 넣었다"는 입력으로 인식해 변경 날짜를 기록한다 (미기입 해제용)
+    entry.capChangedDate = ymd(new Date());
+    pendingCapEntryIds.add(entry.id); // 저장 버튼을 눌러야 입고등록으로 확정
+  }
+  entry.capacity = newCapacity;
+  if(editingId === id){
+    document.getElementById('fCapacity').value = selectEl.value;
+  }
+  markDirty();
+  render();
+}
+
+async function changeEntryMemo(selectEl){
+  // 입고내역 표에서 Full/사용 행의 폐용매를 바로 드롭다운으로 바꾼다.
+  // 빈백은 폐용매 자체가 없는 항목이라 이 드롭다운 대상에서 제외한다(표에는 "—"로 표시).
+  const id = selectEl.dataset.id;
+  const entry = entries.find(e => e.id === id);
+  if(!entry) return;
+
+  let value = selectEl.value;
+  if(value === OTHER_VALUE){
+    // 표에서는 별도 입력칸을 둘 자리가 없으므로, "기타"를 고르면 바로 입력창을 띄운다.
+    const typed = prompt('폐용매 이름을 입력하세요.', (entry.memo && !wastePresets.includes(entry.memo)) ? entry.memo : '');
+    if(typed === null || !typed.trim()){
+      // 취소했거나 빈 값이면 원래 선택으로 되돌린다
+      selectEl.innerHTML = wasteOptionsHtml(entry.memo);
+      selectEl.value = entry.memo;
+      return;
+    }
+    value = typed.trim();
+  }
+
+  entry.memo = value;
+  if(editingId === id){
+    document.getElementById('fMemo').innerHTML = wasteOptionsHtml(entry.memo);
+    document.getElementById('fMemo').value = entry.memo;
+    document.getElementById('fMemoOther').style.display = 'none';
+    document.getElementById('fMemoOther').value = '';
+  }
+  markDirty();
+  render();
+}
+
+async function deleteEntry(id){
+  if(editingId === id) cancelEdit();
+  entries = entries.filter(e => e.id !== id);
+  markDirty();
+  render();
+}
+
+// 등록/수정/삭제/전체삭제/폐용매 목록 변경은 전부 화면(메모리)에만 반영되고, 이 "저장"
+// 버튼을 눌러야만 실제로 공유 저장소(또는 이 브라우저)에 저장된다. 새로고침하거나 저장
+// 없이 창을 닫으면 저장 버튼을 누르기 전 변경사항은 사라진다(그래서 beforeunload 경고도
+// 함께 걸어둔다).
+async function handleSaveClick(){
+  const btn = document.getElementById('saveBtn');
+  const hint = document.getElementById('formHint');
+  if(hint) hint.textContent = '';
+  btn.disabled = true;
+  // 용량(기존수량)을 바꾼 항목이 있으면, 저장하는 순간 "입고등록"으로 인식하고
+  // 그 때문에 해결되는 미기입 항목은 체크(입고함) 처리한다.
+  const pendingBackup = new Set(pendingCapEntryIds);
+  const dismissedBackup = new Set(dismissedMissingKeys);
+  if(pendingCapEntryIds.size){
+    const days = getCalendarViewDays();
+    const keyOf = x => `${ymd(x.date)}|${x.code}|${x.solvent}`;
+    const before = new Set(collectMissingWasteEntries(days).map(keyOf));
+    pendingCapEntryIds.clear();
+    collectMissingWasteEntries(days).forEach(x => before.delete(keyOf(x)));
+    before.forEach(k => dismissedMissingKeys.add(k));
+  }
+  await saveEntries();
+  btn.disabled = false;
+  // saveEntries()는 실패하면 formHint에 오류 메시지를 남긴다 — 그 경우엔 아직 저장되지
+  // 않은 것이므로 isDirty를 유지하고, "저장됨" 표시 대신 그 오류 메시지가 보이게 둔다.
+  const failed = hint && hint.textContent;
+  if(failed){
+    // 저장 실패 시에는 입고등록 인식/체크도 되돌린다
+    pendingBackup.forEach(id => pendingCapEntryIds.add(id));
+    dismissedMissingKeys = dismissedBackup;
+  } else {
+    renderCalendarAlerts();
+    isDirty = false;
+    clearTimeout(saveClickTimer);
+    btn.classList.remove('dirty');
+    btn.classList.add('done');
+    btn.textContent = '✓ 저장됨';
+    saveClickTimer = setTimeout(()=>{
+      updateSaveButtonUI();
+    }, 1500);
+  }
+}
+
+function handleClearClick(){
+  // 실수로 버튼을 두 번 눌러 전체 기록이 통째로 사라지는 사고를 막기 위해,
+  // "다시 클릭" 방식 대신 "전체삭제"라는 글자를 정확히 입력해야만 실제로 삭제되도록 한다.
+  const typed = prompt('입고 내역을 전부 삭제합니다. 되돌릴 수 없습니다.\n\n계속하려면 아래에 "전체삭제"라고 입력하세요.');
+  if(typed === null) return; // 취소
+  const hint = document.getElementById('formHint');
+  if(typed.trim() !== '전체삭제'){
+    if(hint) hint.textContent = '입력한 내용이 "전체삭제"와 일치하지 않아 취소되었습니다.';
+    return;
+  }
+  if(hint) hint.textContent = '';
+  clearAllEntries();
+}
+
+async function clearAllEntries(){
+  if(editingId) cancelEdit();
+  entries = [];
+  markDirty();
+  render();
+}
+
+function bagIcon(type, uid){
+  const colorVar = `var(${TYPE_COLOR_VAR[type]})`;
+  const ratio = TYPE_RATIO[type];
+  const top = 4, bottom = 18, totalH = bottom - top;
+  const filledH = totalH * ratio;
+  const rectY = bottom - filledH;
+  const clipId = 'clip-' + uid;
+  return `<svg width="16" height="16" viewBox="0 0 20 20" style="flex-shrink:0;">
+    <defs>
+      <clipPath id="${clipId}">
+        <path d="M5 4 L15 4 L17 18 L3 18 Z"/>
+      </clipPath>
+    </defs>
+    <path d="M5 4 L15 4 L17 18 L3 18 Z" fill="none" stroke="${colorVar}" stroke-width="1.6" stroke-linejoin="round"/>
+    <rect x="3" y="${rectY}" width="14" height="${filledH}" fill="${colorVar}" opacity="0.85" clip-path="url(#${clipId})"/>
+  </svg>`;
+}
+
+function renderStats(){
+  const stock = getStock();
+  document.getElementById('statTotal').textContent = stock.full + stock.half + stock.empty;
+  document.getElementById('statFull').textContent = stock.full;
+  document.getElementById('statHalf').textContent = stock.half;
+  document.getElementById('statEmpty').textContent = stock.empty;
+}
+
 function renderLog(){
-  const tbody=document.getElementById('logBody');if(!entries.length){tbody.innerHTML='<tr class="empty-row"><td colspan="7">기록이 없습니다. 위에서 입고를 등록해보세요.</td></tr>';return}
-  const chronological=entries.slice().sort((a,b)=>(a.createdAt||0)-(b.createdAt||0)),noMap={};chronological.forEach((e,idx)=>noMap[e.id]=idx+1);const list=entries.slice().sort((a,b)=>(b.createdAt||0)-(a.createdAt||0));
-  tbody.innerHTML=list.map(e=>{const noStr=String(noMap[e.id]).padStart(4,'0'),typeLabel=TYPE_LABELS[e.type]||e.type,rowClass=e.id===editingId?' class="editing-row"':'';
-    const statusCell=(e.type==='full'||e.type==='half')?`<select class="status-select type-${e.type}" data-id="${escapeHtml(e.id)}" onchange="changeEntryType(this)"><option value="full" ${e.type==='full'?'selected':''}>● Full</option><option value="half" ${e.type==='half'?'selected':''}>◐ 사용</option></select>`:`<span class="bagchip">${bagIcon(e.type,e.id)} ${typeLabel}</span>`;
-    const capacityCell=e.type==='half'?`<select class="cap-select" data-id="${escapeHtml(e.id)}" onchange="changeEntryCapacity(this)">${capacityOptionsHtml(e.capacity)}</select>`:'<span class="cap-dash">—</span>';
-    const memoCell=(e.type==='full'||e.type==='half')?`<select class="memo-select" data-id="${escapeHtml(e.id)}" onchange="changeEntryMemo(this)">${wasteOptionsHtml(e.memo)}</select>`:'<span class="cap-dash">—</span>';
-    return `<tr${rowClass}><td class="no" data-label="No.">#${noStr}</td><td data-label="날짜">${escapeHtml(e.date||'')}</td><td data-label="상태">${statusCell}</td><td data-label="용량">${capacityCell}</td><td data-label="수량">${Number(e.qty)||0}개</td><td data-label="폐용매">${memoCell}</td><td data-label="작업"><button class="edit-btn" onclick="startEditEntry('${escapeHtml(e.id)}')" title="수정">✎</button><button class="del-btn" onclick="deleteEntry('${escapeHtml(e.id)}')" title="삭제">✕</button></td></tr>`;
+  const tbody = document.getElementById('logBody');
+
+  if(entries.length === 0){
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="7">기록이 없습니다. 위에서 입고를 등록해보세요.</td></tr>`;
+    return;
+  }
+
+  // assign stable sequence numbers in chronological (ascending) order
+  const chronological = entries.slice().sort((a,b)=> a.createdAt - b.createdAt);
+  const noMap = {};
+  chronological.forEach((e, idx)=>{ noMap[e.id] = idx + 1; });
+
+  const list = entries.slice().sort((a,b)=> b.createdAt - a.createdAt);
+
+  tbody.innerHTML = list.map(e=>{
+    const noStr = String(noMap[e.id]).padStart(4,'0');
+    const typeLabel = TYPE_LABELS[e.type] || e.type;
+    const rowClass = e.id === editingId ? ' class="editing-row"' : '';
+    // Full/사용(half)은 표에서 바로 드롭다운으로 상태를 바꿀 수 있다 (수량은 그대로
+    // 유지되고, Full<->사용 전환은 빈톤백 차감량이 동일해서 재고 검사가 필요 없다).
+    // 빈백은 별도 항목(빈 자루 입고 자체)이라 이 드롭다운 대상에서 제외한다.
+    const statusCell = (e.type === 'full' || e.type === 'half')
+      ? `<select class="status-select type-${e.type}" data-id="${e.id}" onchange="changeEntryType(this)">
+          <option value="full" ${e.type==='full' ? 'selected' : ''}>● Full</option>
+          <option value="half" ${e.type==='half' ? 'selected' : ''}>◐ 사용</option>
+        </select>`
+      : `<span class="bagchip">${bagIcon(e.type, e.id)} ${typeLabel}</span>`;
+    // 용량(L)은 "사용" 상태일 때만 의미가 있으므로 그 외에는 "—"로 표시한다.
+    const capacityCell = (e.type === 'half')
+      ? `<select class="cap-select" data-id="${e.id}" onchange="changeEntryCapacity(this)">${capacityOptionsHtml(e.capacity)}</select>`
+      : `<span class="cap-dash">—</span>`;
+    // 폐용매도 Full/사용 행에서는 표에서 바로 드롭다운으로 바꿀 수 있다. 빈백은
+    // 폐용매 자체가 없는 항목이라 제외하고 "—"로 표시한다.
+    const memoCell = (e.type === 'full' || e.type === 'half')
+      ? `<select class="memo-select" data-id="${e.id}" onchange="changeEntryMemo(this)">${wasteOptionsHtml(e.memo)}</select>`
+      : `<span class="cap-dash">—</span>`;
+    return `<tr${rowClass}>
+      <td class="no">#${noStr}</td>
+      <td>${e.date}</td>
+      <td>${statusCell}</td>
+      <td>${capacityCell}</td>
+      <td>${e.qty}개</td>
+      <td>${memoCell}</td>
+      <td>
+        <button class="edit-btn" onclick="startEditEntry('${e.id}')" title="수정">✎</button>
+        <button class="del-btn" onclick="deleteEntry('${e.id}')" title="삭제">✕</button>
+      </td>
+    </tr>`;
   }).join('');
 }
-function renderMemoStats(){const tbody=document.getElementById('memoStatsBody'),groups={};entries.forEach(e=>{const key=e.memo&&e.memo.trim()?e.memo.trim():'(폐용매 없음)';if(!groups[key])groups[key]={count:0,full:0,half:0,empty:0,total:0};groups[key].count+=1;groups[key][e.type]+=Number(e.qty)||0;groups[key].total+=Number(e.qty)||0});const keys=Object.keys(groups).sort((a,b)=>groups[b].total-groups[a].total);if(!keys.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:var(--muted);font-family:Inter,sans-serif;padding:20px 10px">기록이 없습니다.</td></tr>';return}tbody.innerHTML=keys.map(key=>{const g=groups[key];return `<tr><td class="memo-name">${escapeHtml(key)}</td><td class="num-cell">${g.count}건</td><td class="num-cell">${g.full}</td><td class="num-cell">${g.half}</td><td class="num-cell">${g.empty}</td><td class="num-cell"><strong>${g.total}개</strong></td></tr>`}).join('')}
-function render(){renderWasteSelect();if(wasteManageOpen)renderWasteManageList();if(productManageOpen)renderProductManageList();renderCalendarAlerts();maybeAutoFetchCalendar();renderStats();renderMemoStats();renderLog()}
 
-document.getElementById('fDate').value=todayStr();
-(async function bootstrap(){useFirebase=await initFirebaseBackend();updateSyncBadge();if(useFirebase)subscribeEntries();else await loadEntries();setInterval(()=>{if(calendarConfig.calendarId&&calendarConfig.apiKey)refreshCalendarAlerts()},5*60*1000)})();
+function renderMemoStats(){
+  const tbody = document.getElementById('memoStatsBody');
+  const groups = {}; // memoKey -> { count, full, half, empty, total }
+
+  entries.forEach(e=>{
+    const key = e.memo && e.memo.trim() ? e.memo.trim() : '(폐용매 없음)';
+    if(!groups[key]) groups[key] = { count:0, full:0, half:0, empty:0, total:0 };
+    groups[key].count += 1;
+    groups[key][e.type] += e.qty;
+    groups[key].total += e.qty;
+  });
+
+  const keys = Object.keys(groups).sort((a,b)=> groups[b].total - groups[a].total);
+
+  if(keys.length === 0){
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; color:var(--muted); font-family:'Inter',sans-serif; padding:20px 10px;">기록이 없습니다.</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = keys.map(key=>{
+    const g = groups[key];
+    return `<tr>
+      <td class="memo-name">${key}</td>
+      <td class="num-cell">${g.count}건</td>
+      <td class="num-cell">${g.full}</td>
+      <td class="num-cell">${g.half}</td>
+      <td class="num-cell">${g.empty}</td>
+      <td class="num-cell"><strong>${g.total}개</strong></td>
+    </tr>`;
+  }).join('');
+}
+
+function render(){
+  renderWasteSelect();
+  if(wasteManageOpen) renderWasteManageList();
+  if(productManageOpen) renderProductManageList();
+  renderCalendarAlerts();
+  maybeAutoFetchCalendar();
+  renderStats();
+  renderMemoStats();
+  renderLog();
+}
+
+document.getElementById('fDate').value = todayStr();
+(async function bootstrap(){
+  useFirebase = await initFirebaseBackend();
+  updateSyncBadge();
+  if(useFirebase){
+    subscribeEntries();
+  } else {
+    await loadEntries();
+  }
+  // 캘린더 설정이 있으면 5분마다 자동으로 새로고침해서 오늘/내일 알림을 최신으로 유지한다.
+  setInterval(()=>{
+    if(calendarConfig.calendarId && calendarConfig.apiKey) refreshCalendarAlerts();
+  }, 5 * 60 * 1000);
+})();
 </script>
 </body>
 </html>
